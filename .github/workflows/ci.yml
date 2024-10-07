@@ -10,6 +10,10 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
+    strategy:
+      matrix:
+        board: [esp32dev, nodemcuv2]
+
     steps:
     - uses: actions/checkout@v2
     
@@ -36,9 +40,15 @@ jobs:
         pip install platformio
 
     - name: Run PlatformIO tests
-      run: pio test
+      run: pio test -e ${{ matrix.board }}
 
     - name: Build examples
       run: |
-        pio ci --lib="." --board=esp32dev examples/PerSensorMode
-        pio ci --lib="." --board=esp32dev examples/SingleIntervalMode
+        pio ci --lib="." --board=${{ matrix.board }} examples/PerSensorMode
+        pio ci --lib="." --board=${{ matrix.board }} examples/SingleIntervalMode
+        pio ci --lib="." --board=${{ matrix.board }} examples/InterruptDrivenSensors
+        pio ci --lib="." --board=${{ matrix.board }} examples/PerSensorWithSleep
+        pio ci --lib="." --board=${{ matrix.board }} examples/SingleIntervalWifi
+
+    - name: Run static analysis
+      run: pio check --pattern="src/*.cpp" --pattern="src/*.h"

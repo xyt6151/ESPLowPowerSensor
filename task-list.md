@@ -2,9 +2,10 @@
 Use this document to keep track of tasks that need to be done.
 
 ## Unfinished tasks
-1. Review and update .github/workflows/ci.yml if necessary
+No unfinished tasks remaining.
 
 ## Finished tasks
+72. Review and update .github/workflows/ci.yml if necessary
 71. Review and update platformio.ini if necessary
 70. Review and update .vscode/c_cpp_properties.json if necessary
 69. Update include/README and lib/README if they contain relevant documentation
