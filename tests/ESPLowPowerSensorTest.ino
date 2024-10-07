@@ -159,3 +159,62 @@ test(wifiOperations) {
 }
 
 // More test cases will be added in subsequent tasks
+
+test(runPerSensorMode) {
+  ESPLowPowerSensor sensor;
+  assertTrue(sensor.init(ESPLowPowerSensor::Mode::PER_SENSOR, false, ESPLowPowerSensor::LowPowerMode::LIGHT_SLEEP));
+  
+  int sensor1Count = 0;
+  int sensor2Count = 0;
+  
+  assertTrue(sensor.addSensor([&sensor1Count](){ sensor1Count++; }, nullptr, 100));
+  assertTrue(sensor.addSensor([&sensor2Count](){ sensor2Count++; }, nullptr, 200));
+  
+  // Simulate running for 250ms
+  for (int i = 0; i < 25; i++) {
+    sensor.run();
+    delay(10);
+  }
+  
+  assertEqual(2, sensor1Count);
+  assertEqual(1, sensor2Count);
+  
+  // Simulate running for another 250ms
+  for (int i = 0; i < 25; i++) {
+    sensor.run();
+    delay(10);
+  }
+  
+  assertEqual(4, sensor1Count);
+  assertEqual(2, sensor2Count);
+}
+
+test(runSingleIntervalMode) {
+  ESPLowPowerSensor sensor;
+  assertTrue(sensor.init(ESPLowPowerSensor::Mode::SINGLE_INTERVAL, false, ESPLowPowerSensor::LowPowerMode::DEEP_SLEEP));
+  
+  int sensor1Count = 0;
+  int sensor2Count = 0;
+  
+  assertTrue(sensor.addSensor([&sensor1Count](){ sensor1Count++; }));
+  assertTrue(sensor.addSensor([&sensor2Count](){ sensor2Count++; }));
+  assertTrue(sensor.setSingleInterval(150));
+  
+  // Simulate running for 350ms
+  for (int i = 0; i < 35; i++) {
+    sensor.run();
+    delay(10);
+  }
+  
+  assertEqual(2, sensor1Count);
+  assertEqual(2, sensor2Count);
+  
+  // Simulate running for another 150ms
+  for (int i = 0; i < 15; i++) {
+    sensor.run();
+    delay(10);
+  }
+  
+  assertEqual(3, sensor1Count);
+  assertEqual(3, sensor2Count);
+}
