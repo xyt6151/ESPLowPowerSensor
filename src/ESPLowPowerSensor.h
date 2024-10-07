@@ -93,12 +93,12 @@ private:
     /**
      * @brief Runs the ESPLowPowerSensor in PER_SENSOR mode.
      */
-    void runPerSensorMode() const;
+    void runPerSensorMode();
 
     /**
      * @brief Runs the ESPLowPowerSensor in SINGLE_INTERVAL mode.
      */
-    void runSingleIntervalMode() const;
+    void runSingleIntervalMode();
 
     /**
      * @brief Puts the ESP into sleep mode for the specified duration.

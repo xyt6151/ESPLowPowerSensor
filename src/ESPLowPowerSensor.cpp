@@ -101,7 +101,7 @@ void ESPLowPowerSensor::run() {
     }
 }
 
-void ESPLowPowerSensor::runPerSensorMode() const {
+void ESPLowPowerSensor::runPerSensorMode() {
     unsigned long currentTime = millis();
     unsigned long nextWakeTime = ULONG_MAX;
 
@@ -132,7 +132,7 @@ void ESPLowPowerSensor::runPerSensorMode() const {
     goToSleep(sleepDuration);
 }
 
-void ESPLowPowerSensor::runSingleIntervalMode() const {
+void ESPLowPowerSensor::runSingleIntervalMode() {
     unsigned long currentTime = millis();
 
     // Check if it's time to execute sensor functions

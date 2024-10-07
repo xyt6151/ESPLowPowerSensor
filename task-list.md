@@ -29,3 +29,4 @@ Use this document to keep track of tasks that need to be done. Determine
 11. Add thorough comments throughout both the .cpp and .h files, ensuring comprehensive understanding for AI code readers
 12. Add const qualifiers to methods that don't modify the object state in ESPLowPowerSensor.h
 13. Add input validation for the interval parameter in addSensor()
+14. Fix const correctness issues in runPerSensorMode() and runSingleIntervalMode()
