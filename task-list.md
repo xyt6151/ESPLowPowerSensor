@@ -47,3 +47,12 @@ No unfinished tasks remaining.
 40. Implement a more efficient queue system for interrupt handling, possibly using a circular buffer.
 41. Use constexpr for compile-time computations where applicable.
 42. Implement lazy initialization for WiFi to reduce startup time and power consumption.
+43. Define MAX_SENSORS constant
+44. Implement empty() method for CircularBuffer class
+45. Fix array subscript errors for _buffer in CircularBuffer class
+46. Add proper ESP32 WiFi header includes
+47. Replace esp_wifi_start and esp_wifi_stop with appropriate WiFi functions
+48. Fix CIRCULAR_BUFFER_SIZE and MAX_SENSORS declaration order
+49. Fix array subscript errors for _sensors in ESPLowPowerSensor class
+50. Replace esp_wifi_start with appropriate WiFi function in init method
+52. Remove duplicate definition of CIRCULAR_BUFFER_SIZE

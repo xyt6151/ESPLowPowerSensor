@@ -7,23 +7,19 @@
 #include <queue>  // Add this line
 #include <atomic>  // Add this line at the top of the file
 #include <array>  // Add this line
-#define MAX_SENSORS 10 // Define the maximum number of sensors
 
-// Include appropriate headers based on the ESP board being used
+// Add these includes at the top of the file
 #if defined(ESP32)
-#include <esp_sleep.h>
-#include <esp_wifi.h>
-#include "esp32-hal-timer.h"
+#include <WiFi.h>
 #elif defined(ESP8266)
 #include <ESP8266WiFi.h>
-#include <Ticker.h>
 #else
 #error "This library only supports ESP32 and ESP8266 boards"
 #endif
 
-// Add these constexpr definitions near the top of the file, after the includes
-constexpr size_t MAX_SENSORS = 10;
+// Add these near the top of the file, after the includes and before any class definitions
 constexpr size_t CIRCULAR_BUFFER_SIZE = 32;
+constexpr size_t MAX_SENSORS = 10;
 
 // Update the CircularBuffer class
 class CircularBuffer {
@@ -41,6 +37,31 @@ public:
     constexpr size_t capacity() const {
         return CIRCULAR_BUFFER_SIZE;
     }
+
+    bool full() const { return _full; }
+    void push(size_t value) {
+        _buffer[_head] = value;
+        if (_full) {
+            _tail = (_tail + 1) % CIRCULAR_BUFFER_SIZE;
+        }
+        _head = (_head + 1) % CIRCULAR_BUFFER_SIZE;
+        _full = _head == _tail;
+    }
+    bool pop(size_t& value) {
+        if (empty()) {
+            return false;
+        }
+        value = _buffer[_tail];
+        _full = false;
+        _tail = (_tail + 1) % CIRCULAR_BUFFER_SIZE;
+        return true;
+    }
+
+    bool empty() const {
+        return !_full && (_head == _tail);
+    }
+
+    // ... rest of the class ...
 };
 
 /**
@@ -136,7 +157,7 @@ public:
      * @brief Returns the number of sensors currently managed.
      * @return The number of sensors.
      */
-    size_t getSensorCount() const;
+    constexpr size_t getSensorCount() const { return _sensorCount; }
 
     /**
      * @brief Gets the current operational mode.
@@ -167,12 +188,6 @@ public:
      * @return True if interrupts are enabled, false otherwise.
      */
     constexpr bool areInterruptsEnabled() const { return _interruptsEnabled; }
-
-    /**
-     * @brief Gets the number of sensors currently managed.
-     * @return The number of sensors.
-     */
-    constexpr size_t getSensorCount() const { return _sensorCount; }
 
 private:
     Mode _mode;                      ///< Current operational mode
@@ -234,6 +249,8 @@ private:
     bool wifiOn() const;
 
     bool initializeWifi() const;  ///< Initialize WiFi if not already done
+
+    size_t _sensorCount;  // Add this line
 };
 
 #endif // ESP_LOW_POWER_SENSOR_H

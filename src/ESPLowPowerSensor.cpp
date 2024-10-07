@@ -26,7 +26,8 @@ ESPLowPowerSensor::ESPLowPowerSensor()
       _singleInterval(0), 
       _interruptInProgress(false),
       _interruptsEnabled(true),
-      _sensorCount(0) {
+      _sensorCount(0),
+      _wifiInitialized(false) {
     instance = this;
 }
 
@@ -58,7 +59,8 @@ bool ESPLowPowerSensor::init(Mode mode, bool wifiRequired, LowPowerMode lowPower
     // Configure WiFi if required
     if (_wifiRequired) {
         #if defined(ESP32)
-        esp_wifi_start();
+        WiFi.mode(WIFI_STA);
+        WiFi.begin();
         #elif defined(ESP8266)
         WiFi.mode(WIFI_STA);
         WiFi.begin();
@@ -88,7 +90,7 @@ bool ESPLowPowerSensor::addSensor(std::function<void()> wakeFunction, std::funct
         }
     }
 
-    _sensors[_sensorCount] = {wakeFunction, sleepFunction, interval, 0};
+    _sensors[_sensorCount] = Sensor{wakeFunction, sleepFunction, interval, 0};
     _sensorCount++;
 
     // Set up timer interrupt for this sensor
@@ -204,37 +206,31 @@ void ESPLowPowerSensor::goToSleep(unsigned long sleepTime) const {
 }
 
 bool ESPLowPowerSensor::wifiOff() const {
+    if (!_wifiRequired) {
+        return true;
+    }
+
     #if defined(ESP32)
-    esp_err_t result = esp_wifi_stop();
-    if (result != ESP_OK) {
-        // Handle error (e.g., log it or set an error flag)
-        return false;
-    }
+    return WiFi.disconnect(true);
     #elif defined(ESP8266)
-    WiFi.mode(WIFI_OFF);
-    if (WiFi.forceSleepBegin() != WIFI_FORCE_SLEEP_BEGIN) {
-        // Handle error (e.g., log it or set an error flag)
-        return false;
-    }
+    return WiFi.forceSleepBegin();
     #endif
-    return true;
 }
 
 bool ESPLowPowerSensor::wifiOn() const {
+    if (!_wifiRequired) {
+        return true;
+    }
+
+    if (!_wifiInitialized) {
+        return initializeWifi();
+    }
+
     #if defined(ESP32)
-    esp_err_t result = esp_wifi_start();
-    if (result != ESP_OK) {
-        // Handle error (e.g., log it or set an error flag)
-        return false;
-    }
+    return WiFi.begin();
     #elif defined(ESP8266)
-    if (WiFi.forceSleepWake() != WIFI_FORCE_SLEEP_WAKEUP) {
-        // Handle error (e.g., log it or set an error flag)
-        return false;
-    }
-    delay(1); // Needed to ensure WiFi is fully awake
+    return WiFi.forceSleepWake() == WIFI_FORCE_SLEEP_WAKEUP;
     #endif
-    return true;
 }
 
 bool ESPLowPowerSensor::setMode(Mode newMode) {
