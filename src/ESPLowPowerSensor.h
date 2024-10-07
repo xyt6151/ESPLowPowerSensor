@@ -93,28 +93,28 @@ private:
     /**
      * @brief Runs the ESPLowPowerSensor in PER_SENSOR mode.
      */
-    void runPerSensorMode();
+    void runPerSensorMode() const;
 
     /**
      * @brief Runs the ESPLowPowerSensor in SINGLE_INTERVAL mode.
      */
-    void runSingleIntervalMode();
+    void runSingleIntervalMode() const;
 
     /**
      * @brief Puts the ESP into sleep mode for the specified duration.
      * @param sleepTime Duration to sleep in milliseconds.
      */
-    void goToSleep(unsigned long sleepTime);
+    void goToSleep(unsigned long sleepTime) const;
 
     /**
      * @brief Turns off WiFi to conserve power.
      */
-    void wifiOff();
+    void wifiOff() const;
 
     /**
      * @brief Turns on WiFi when needed for sensor operations.
      */
-    void wifiOn();
+    void wifiOn() const;
 };
 
 #endif // ESP_LOW_POWER_SENSOR_H

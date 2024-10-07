@@ -91,7 +91,7 @@ void ESPLowPowerSensor::run() {
     }
 }
 
-void ESPLowPowerSensor::runPerSensorMode() {
+void ESPLowPowerSensor::runPerSensorMode() const {
     unsigned long currentTime = millis();
     unsigned long nextWakeTime = ULONG_MAX;
 
@@ -122,7 +122,7 @@ void ESPLowPowerSensor::runPerSensorMode() {
     goToSleep(sleepDuration);
 }
 
-void ESPLowPowerSensor::runSingleIntervalMode() {
+void ESPLowPowerSensor::runSingleIntervalMode() const {
     unsigned long currentTime = millis();
 
     // Check if it's time to execute sensor functions
@@ -150,7 +150,7 @@ void ESPLowPowerSensor::runSingleIntervalMode() {
     }
 }
 
-void ESPLowPowerSensor::goToSleep(unsigned long sleepTime) {
+void ESPLowPowerSensor::goToSleep(unsigned long sleepTime) const {
     if (_wifiRequired) {
         wifiOff();
     }
@@ -177,7 +177,7 @@ void ESPLowPowerSensor::goToSleep(unsigned long sleepTime) {
     }
 }
 
-void ESPLowPowerSensor::wifiOff() {
+void ESPLowPowerSensor::wifiOff() const {
     #if defined(ESP32)
     esp_wifi_stop();
     #elif defined(ESP8266)
@@ -186,7 +186,7 @@ void ESPLowPowerSensor::wifiOff() {
     #endif
 }
 
-void ESPLowPowerSensor::wifiOn() {
+void ESPLowPowerSensor::wifiOn() const {
     #if defined(ESP32)
     esp_wifi_start();
     #elif defined(ESP8266)
