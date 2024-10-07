@@ -2,23 +2,23 @@
 Use this document to keep track of tasks that need to be done.
 
 ## Unfinished tasks
-1. Modify addSensor method in ESPLowPowerSensor.h and ESPLowPowerSensor.cpp
-2. Update run, runPerSensorMode, and runSingleIntervalMode methods in ESPLowPowerSensor.cpp
-3. Implement methods for checking digital and analog triggers in ESPLowPowerSensor.cpp
-4. Update existing example files to showcase new trigger modes
-5. Create new examples demonstrating digital and analog trigger usage
-6. Update README.md with information about new trigger modes and usage examples
-7. Update library.properties with new keywords related to trigger modes
-8. Add new test cases for different trigger modes in test files
-9. Modify existing tests to accommodate the changes
-10. Review and update any other relevant documentation or configuration files
-11. Update keywords.txt with new keywords related to trigger modes
-12. Review and update .github/workflows/ci.yml if necessary
-13. Update include/README and lib/README if they contain relevant documentation
-14. Review and update .vscode/c_cpp_properties.json if necessary
-15. Review and update platformio.ini if necessary
+1. Implement methods for checking digital and analog triggers in ESPLowPowerSensor.cpp
+2. Update existing example files to showcase new trigger modes
+3. Create new examples demonstrating digital and analog trigger usage
+4. Update README.md with information about new trigger modes and usage examples
+5. Update library.properties with new keywords related to trigger modes
+6. Add new test cases for different trigger modes in test files
+7. Modify existing tests to accommodate the changes
+8. Review and update any other relevant documentation or configuration files
+9. Update keywords.txt with new keywords related to trigger modes
+10. Review and update .github/workflows/ci.yml if necessary
+11. Update include/README and lib/README if they contain relevant documentation
+12. Review and update .vscode/c_cpp_properties.json if necessary
+13. Review and update platformio.ini if necessary
 
 ## Finished tasks
+59. Update run, runPerSensorMode, and runSingleIntervalMode methods in ESPLowPowerSensor.cpp
+58. Modify addSensor method in ESPLowPowerSensor.h and ESPLowPowerSensor.cpp
 57. Update ESPLowPowerSensor.h to add TriggerMode enum and modify Sensor struct
 56. Implement WiFi credential storage and management
 2. Create the basic library structure (header and source files)

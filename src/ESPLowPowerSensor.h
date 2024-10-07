@@ -283,6 +283,9 @@ private:
     bool initializeWifi() const;  ///< Initialize WiFi if not already done
 
     size_t _sensorCount;  // Add this line
+
+    bool checkDigitalTrigger(const Sensor& sensor);
+    bool checkAnalogTrigger(const Sensor& sensor);
 };
 
 #endif // ESP_LOW_POWER_SENSOR_H

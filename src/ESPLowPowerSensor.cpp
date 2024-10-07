@@ -52,65 +52,67 @@ bool ESPLowPowerSensor::init(Mode mode, bool wifiRequired, LowPowerMode lowPower
     return true; // Return false if any initialization fails
 }
 
-bool ESPLowPowerSensor::addSensor(std::function<void()> wakeFunction, std::function<void()> sleepFunction, unsigned long interval) {
+bool ESPLowPowerSensor::addSensor(std::function<void()> wakeFunction, 
+                                  std::function<void()> sleepFunction, 
+                                  TriggerMode triggerMode, 
+                                  unsigned long intervalOrThreshold,
+                                  uint8_t pin) {
     if (_sensorCount >= MAX_SENSORS) {
         Serial.println("Maximum number of sensors reached");
         return false;
     }
 
-    if (_mode == Mode::PER_SENSOR && interval == 0) {
+    if (!wakeFunction) {
+        Serial.println("Wake function is required");
+        return false;
+    }
+
+    if (_mode == Mode::PER_SENSOR && triggerMode == TriggerMode::TIME_INTERVAL && intervalOrThreshold == 0) {
         Serial.println("Invalid interval for PER_SENSOR mode");
         return false;
     }
 
     if (_mode == Mode::SINGLE_INTERVAL) {
         if (_sensorCount == 0) {
-            _singleInterval = interval;
-        } else if (interval != _singleInterval) {
+            _singleInterval = intervalOrThreshold;
+        } else if (intervalOrThreshold != _singleInterval) {
             Serial.println("All sensors must have the same interval in SINGLE_INTERVAL mode");
             return false;
         }
     }
 
-    _sensors[_sensorCount] = Sensor{wakeFunction, sleepFunction, interval, 0};
-    _sensorCount++;
+    Sensor newSensor;
+    newSensor.wakeFunction = wakeFunction;
+    newSensor.sleepFunction = sleepFunction;
+    newSensor.triggerMode = triggerMode;
+    newSensor.lastExecutionTime = 0;
+    newSensor.pin = pin;
 
-    // Set up timer interrupt for this sensor
-    if (!setupTimerInterrupt(interval)) {
-        Serial.println("Failed to set up timer interrupt for sensor");
-        _sensorCount--; // Remove the sensor if interrupt setup fails
-        return false;
+    switch (triggerMode) {
+        case TriggerMode::TIME_INTERVAL:
+            newSensor.triggerValue.interval = intervalOrThreshold;
+            break;
+        case TriggerMode::DIGITAL:
+            newSensor.triggerValue.digitalValue = intervalOrThreshold != 0;
+            pinMode(pin, INPUT);
+            break;
+        case TriggerMode::ANALOG:
+            newSensor.triggerValue.analogValue = intervalOrThreshold;
+            pinMode(pin, INPUT);
+            break;
     }
+
+    _sensors[_sensorCount] = newSensor;
+    _sensorCount++;
 
     return true;
 }
 
 void ESPLowPowerSensor::run() {
-    if (_interruptsEnabled) {
-        handleInterrupt();  // Process any pending interrupts
-        if (_mode == Mode::PER_SENSOR) {
-            runPerSensorMode();
-        } else {
-            runSingleIntervalMode();
-        }
-        processInterruptQueue();
+    if (_mode == Mode::PER_SENSOR) {
+        runPerSensorMode();
     } else {
-        for (size_t i = 0; i < _sensorCount; ++i) {
-            auto& sensor = _sensors[i];
-            if (millis() - sensor.lastExecutionTime >= sensor.interval) {
-                if (sensor.wakeFunction) {
-                    sensor.wakeFunction();
-                }
-                if (sensor.sleepFunction) {
-                    sensor.sleepFunction();
-                }
-                sensor.lastExecutionTime = millis();
-            }
-        }
-        // Sleep for the shortest interval
-        unsigned long shortestInterval = std::min_element(_sensors.begin(), _sensors.begin() + _sensorCount,
-            [](const Sensor& a, const Sensor& b) { return a.interval < b.interval; })->interval;
-        goToSleep(shortestInterval);
+        runSingleIntervalMode();
     }
 }
 
@@ -119,25 +121,53 @@ void ESPLowPowerSensor::runPerSensorMode() {
     unsigned long nextWakeTime = ULONG_MAX;
 
     for (size_t i = 0; i < _sensorCount; ++i) {
-        unsigned long timeToWake = _sensors[i].lastExecutionTime + _sensors[i].interval - currentTime;
-        if (timeToWake < nextWakeTime) {
-            nextWakeTime = timeToWake;
+        bool shouldExecute = false;
+        switch (_sensors[i].triggerMode) {
+            case TriggerMode::TIME_INTERVAL:
+                if (currentTime - _sensors[i].lastExecutionTime >= _sensors[i].triggerValue.interval) {
+                    shouldExecute = true;
+                    nextWakeTime = std::min(nextWakeTime, _sensors[i].triggerValue.interval);
+                } else {
+                    nextWakeTime = std::min(nextWakeTime, _sensors[i].triggerValue.interval - (currentTime - _sensors[i].lastExecutionTime));
+                }
+                break;
+            case TriggerMode::DIGITAL:
+                shouldExecute = checkDigitalTrigger(_sensors[i]);
+                break;
+            case TriggerMode::ANALOG:
+                shouldExecute = checkAnalogTrigger(_sensors[i]);
+                break;
+        }
+
+        if (shouldExecute) {
+            executeSensor(i);
         }
     }
 
-    // Set up the timer interrupt for the next wake time
-    setupTimerInterrupt(nextWakeTime);
-
-    // Go to sleep
-    goToSleep(nextWakeTime);
+    if (nextWakeTime < ULONG_MAX) {
+        goToSleep(nextWakeTime);
+    }
 }
 
 void ESPLowPowerSensor::runSingleIntervalMode() {
-    // Set up the timer interrupt for the single interval
-    setupTimerInterrupt(_singleInterval);
+    unsigned long currentTime = millis();
+    if (currentTime - _lastExecutionTime >= _singleInterval || currentTime < _lastExecutionTime) {
+        for (size_t i = 0; i < _sensorCount; ++i) {
+            executeSensor(i);
+        }
+        _lastExecutionTime = currentTime;
+    }
+    goToSleep(_singleInterval - (currentTime - _lastExecutionTime));
+}
 
-    // Go to sleep
-    goToSleep(_singleInterval);
+void ESPLowPowerSensor::executeSensor(size_t index) {
+    if (_sensors[index].wakeFunction) {
+        _sensors[index].wakeFunction();
+    }
+    _sensors[index].lastExecutionTime = millis();
+    if (_sensors[index].sleepFunction) {
+        _sensors[index].sleepFunction();
+    }
 }
 
 void ESPLowPowerSensor::goToSleep(unsigned long sleepTime) const {
@@ -371,4 +401,12 @@ bool ESPLowPowerSensor::initializeWifi() const {
     #endif
 
     return true;
+}
+
+bool ESPLowPowerSensor::checkDigitalTrigger(const Sensor& sensor) {
+    return digitalRead(sensor.pin) == sensor.triggerValue.digitalValue;
+}
+
+bool ESPLowPowerSensor::checkAnalogTrigger(const Sensor& sensor) {
+    return analogRead(sensor.pin) >= sensor.triggerValue.analogValue;
 }
