@@ -1,6 +1,6 @@
 #include <Arduino.h>
 #include "ESPLowPowerSensor.h"
-#include <algorithm> // Add this at the top of the file
+#include <algorithm>
 
 ESPLowPowerSensor::ESPLowPowerSensor() 
     : _mode(Mode::SINGLE_INTERVAL), 
