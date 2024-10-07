@@ -23,6 +23,9 @@ void setup() {
     ; // wait for serial port to connect
   }
 
+  // Set WiFi credentials
+  lowPowerSensor.setWiFiCredentials("YourSSID", "YourPassword");
+
   // Initialize the ESPLowPowerSensor in PER_SENSOR mode with interrupts enabled
   if (!lowPowerSensor.init(ESPLowPowerSensor::Mode::PER_SENSOR, false, ESPLowPowerSensor::LowPowerMode::LIGHT_SLEEP)) {
     Serial.println("Failed to initialize ESPLowPowerSensor");
