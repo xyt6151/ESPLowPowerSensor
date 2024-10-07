@@ -83,6 +83,13 @@ public:
      */
     void run();
 
+    /**
+     * @brief Changes the operating mode after initialization.
+     * @param newMode The new operational mode (PER_SENSOR or SINGLE_INTERVAL).
+     * @return True if the mode was successfully changed, false otherwise.
+     */
+    bool setMode(Mode newMode);
+
 private:
     Mode _mode;                      ///< Current operational mode
     bool _wifiRequired;              ///< Whether WiFi is required during sensor operations

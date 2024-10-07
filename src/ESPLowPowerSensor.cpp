@@ -1,5 +1,6 @@
 #include <Arduino.h>
 #include "ESPLowPowerSensor.h"
+#include <algorithm> // Add this at the top of the file
 
 // put function declarations here:
 int myFunction(int, int);
@@ -103,7 +104,6 @@ void ESPLowPowerSensor::run() {
 
 void ESPLowPowerSensor::runPerSensorMode() {
     unsigned long currentTime = millis();
-    unsigned long nextWakeTime = ULONG_MAX;
 
     for (auto& sensor : _sensors) {
         if (currentTime - sensor.lastExecutionTime >= sensor.interval) {
@@ -119,16 +119,17 @@ void ESPLowPowerSensor::runPerSensorMode() {
 
             sensor.lastExecutionTime = currentTime;
         }
-
-        // Calculate next wake time
-        unsigned long sensorNextWake = sensor.lastExecutionTime + sensor.interval;
-        if (sensorNextWake < nextWakeTime) {
-            nextWakeTime = sensorNextWake;
-        }
     }
 
-    // Calculate sleep duration
-    unsigned long sleepDuration = nextWakeTime - currentTime;
+    // Use std::min_element to find the next wake time
+    auto nextWakeTime = std::min_element(_sensors.begin(), _sensors.end(),
+        [currentTime](const Sensor& a, const Sensor& b) {
+            unsigned long timeToWakeA = a.lastExecutionTime + a.interval - currentTime;
+            unsigned long timeToWakeB = b.lastExecutionTime + b.interval - currentTime;
+            return timeToWakeA < timeToWakeB;
+        });
+
+    unsigned long sleepDuration = nextWakeTime->lastExecutionTime + nextWakeTime->interval - currentTime;
     goToSleep(sleepDuration);
 }
 
@@ -161,6 +162,12 @@ void ESPLowPowerSensor::runSingleIntervalMode() {
 }
 
 void ESPLowPowerSensor::goToSleep(unsigned long sleepTime) const {
+    // Check if sleepTime is zero or negative (unsigned long can't be negative, but we'll check anyway)
+    if (sleepTime == 0) {
+        // Handle the error - for now, we'll just return without sleeping
+        return;
+    }
+
     if (_wifiRequired) {
         wifiOff();
     }
@@ -203,4 +210,35 @@ void ESPLowPowerSensor::wifiOn() const {
     WiFi.forceSleepWake();
     delay(1); // Needed to ensure WiFi is fully awake
     #endif
+}
+
+bool ESPLowPowerSensor::setMode(Mode newMode) {
+    if (_mode == newMode) {
+        return true; // Mode is already set, no change needed
+    }
+
+    // Check if there are any sensors added
+    if (!_sensors.empty()) {
+        // If changing to SINGLE_INTERVAL mode, ensure all sensors have the same interval
+        if (newMode == Mode::SINGLE_INTERVAL) {
+            unsigned long firstInterval = _sensors[0].interval;
+            for (const auto& sensor : _sensors) {
+                if (sensor.interval != firstInterval) {
+                    return false; // Cannot change to SINGLE_INTERVAL mode with different intervals
+                }
+            }
+            _singleInterval = firstInterval;
+        }
+        // If changing to PER_SENSOR mode, ensure all sensors have non-zero intervals
+        else if (newMode == Mode::PER_SENSOR) {
+            for (const auto& sensor : _sensors) {
+                if (sensor.interval == 0) {
+                    return false; // Cannot change to PER_SENSOR mode with zero intervals
+                }
+            }
+        }
+    }
+
+    _mode = newMode;
+    return true;
 }
