@@ -102,6 +102,12 @@ public:
      */
     bool setupTimerInterrupt(unsigned long interval);
 
+    /**
+     * @brief Disables interrupts and reverts to the original behavior.
+     * @return True if interrupts were successfully disabled, false otherwise.
+     */
+    bool disableInterrupts();
+
 private:
     Mode _mode;                      ///< Current operational mode
     bool _wifiRequired;              ///< Whether WiFi is required during sensor operations
@@ -123,6 +129,8 @@ private:
     void processInterruptQueue();  ///< Process the queue of sensor interrupts
 
     std::atomic<bool> _interruptInProgress;  ///< Flag to indicate if an interrupt is being processed
+
+    bool _interruptsEnabled;  ///< Flag to indicate if interrupts are enabled
 
     /**
      * @brief Runs the ESPLowPowerSensor in PER_SENSOR mode.

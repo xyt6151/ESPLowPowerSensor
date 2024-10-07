@@ -1,8 +1,8 @@
 # Task List
-Use this document to keep track of tasks that need to be done. Determine 
+Use this document to keep track of tasks that need to be done.
 
 ## Unfinished tasks
-1. Add a method to disable interrupts if the user wants to revert to the original behavior
+No unfinished tasks remaining.
 
 ## Finished tasks
 1. Create the basic library structure (header and source files)
@@ -39,3 +39,4 @@ Use this document to keep track of tasks that need to be done. Determine
 32. Update the documentation to reflect the new interrupt-driven approach
 33. Create example sketches demonstrating the use of interrupt-driven sensor functions
 34. Implement error handling for cases where interrupt setup fails
+35. Add a method to disable interrupts if the user wants to revert to the original behavior

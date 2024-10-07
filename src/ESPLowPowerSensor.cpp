@@ -19,7 +19,13 @@ int myFunction(int x, int y) {
   return x + y;
 }
 
-ESPLowPowerSensor::ESPLowPowerSensor() : _mode(Mode::SINGLE_INTERVAL), _wifiRequired(false), _lowPowerMode(LowPowerMode::DEEP_SLEEP), _singleInterval(0), _interruptInProgress(false) {
+ESPLowPowerSensor::ESPLowPowerSensor() 
+    : _mode(Mode::SINGLE_INTERVAL), 
+      _wifiRequired(false), 
+      _lowPowerMode(LowPowerMode::DEEP_SLEEP), 
+      _singleInterval(0), 
+      _interruptInProgress(false),
+      _interruptsEnabled(true) {
     instance = this;
 }
 
@@ -90,12 +96,31 @@ bool ESPLowPowerSensor::addSensor(std::function<void()> wakeFunction, std::funct
 }
 
 void ESPLowPowerSensor::run() {
-    if (_mode == Mode::PER_SENSOR) {
-        runPerSensorMode();
+    if (_interruptsEnabled) {
+        if (_mode == Mode::PER_SENSOR) {
+            runPerSensorMode();
+        } else {
+            runSingleIntervalMode();
+        }
+        processInterruptQueue();
     } else {
-        runSingleIntervalMode();
+        // Revert to original behavior without interrupts
+        for (auto& sensor : _sensors) {
+            if (millis() - sensor.lastExecutionTime >= sensor.interval) {
+                if (sensor.wakeFunction) {
+                    sensor.wakeFunction();
+                }
+                if (sensor.sleepFunction) {
+                    sensor.sleepFunction();
+                }
+                sensor.lastExecutionTime = millis();
+            }
+        }
+        // Sleep for the shortest interval
+        unsigned long shortestInterval = std::min_element(_sensors.begin(), _sensors.end(),
+            [](const Sensor& a, const Sensor& b) { return a.interval < b.interval; })->interval;
+        goToSleep(shortestInterval);
     }
-    processInterruptQueue();  // Add this line
 }
 
 void ESPLowPowerSensor::runPerSensorMode() {
@@ -306,4 +331,24 @@ void ESPLowPowerSensor::processInterruptQueue() {
             sensor.lastExecutionTime = millis();
         }
     }
+}
+
+bool ESPLowPowerSensor::disableInterrupts() {
+    if (!_interruptsEnabled) {
+        return true;  // Interrupts are already disabled
+    }
+
+    #if defined(ESP32)
+    if (_timer != nullptr) {
+        timerAlarmDisable(_timer);
+        timerDetachInterrupt(_timer);
+        timerEnd(_timer);
+        _timer = nullptr;
+    }
+    #elif defined(ESP8266)
+    _ticker.detach();
+    #endif
+
+    _interruptsEnabled = false;
+    return true;
 }
