@@ -2,6 +2,9 @@
 #include "ESPLowPowerSensor.h"
 #include <algorithm>
 
+void setup(){}
+void loop(){}
+
 ESPLowPowerSensor::ESPLowPowerSensor() 
     : _mode(Mode::SINGLE_INTERVAL), 
       _wifiRequired(false), 
@@ -20,7 +23,7 @@ bool ESPLowPowerSensor::init(Mode mode, bool wifiRequired, LowPowerMode lowPower
     _lowPowerMode = lowPowerMode;
 
     // Perform any necessary setup based on the selected mode and options
-    switch (_mode) {
+    switch(_mode) {
         case Mode::PER_SENSOR:
             // Setup for per-sensor mode
             break;
