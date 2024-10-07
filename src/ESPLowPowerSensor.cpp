@@ -41,12 +41,19 @@ bool ESPLowPowerSensor::init(Mode mode, bool wifiRequired, LowPowerMode lowPower
 
     // Configure WiFi if required
     if (_wifiRequired) {
-        #if defined(ESP32)
+        if (_wifiSSID == nullptr || _wifiPassword == nullptr) {
+            Serial.println("WiFi credentials not set. Call setWiFiCredentials before init.");
+            return false;
+        }
+        #if defined(ESP32) || defined(ESP8266)
         WiFi.mode(WIFI_STA);
-        WiFi.begin();
-        #elif defined(ESP8266)
-        WiFi.mode(WIFI_STA);
-        WiFi.begin();
+        WiFi.begin(_wifiSSID, _wifiPassword);
+        // Wait for connection
+        while (WiFi.status() != WL_CONNECTED) {
+            delay(500);
+            Serial.print(".");
+        }
+        Serial.println("\nWiFi connected");
         #endif
     }
 
@@ -338,4 +345,9 @@ bool ESPLowPowerSensor::disableInterrupts() {
 
     _interruptsEnabled = false;
     return true;
+}
+
+void ESPLowPowerSensor::setWiFiCredentials(const char* ssid, const char* password) {
+    _wifiSSID = ssid;
+    _wifiPassword = password;
 }

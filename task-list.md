@@ -2,7 +2,7 @@
 Use this document to keep track of tasks that need to be done.
 
 ## Unfinished tasks
-No unfinished tasks remaining.
+1. Implement WiFi credential storage and management
 
 ## Finished tasks
 1. Create the basic library structure (header and source files)

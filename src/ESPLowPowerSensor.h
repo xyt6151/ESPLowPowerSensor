@@ -189,6 +189,13 @@ public:
      */
     constexpr bool areInterruptsEnabled() const { return _interruptsEnabled; }
 
+    /**
+     * @brief Sets the WiFi credentials.
+     * @param ssid The WiFi network SSID.
+     * @param password The WiFi network password.
+     */
+    void setWiFiCredentials(const char* ssid, const char* password);
+
 private:
     Mode _mode;                      ///< Current operational mode
     bool _wifiRequired;              ///< Whether WiFi is required during sensor operations
@@ -219,6 +226,9 @@ private:
     std::atomic<bool> _interruptOccurred;  ///< Flag to indicate if an interrupt has occurred
 
     bool _wifiInitialized;  ///< Flag to indicate if WiFi has been initialized
+
+    const char* _wifiSSID;     ///< WiFi network SSID
+    const char* _wifiPassword; ///< WiFi network password
 
     /**
      * @brief Runs the ESPLowPowerSensor in PER_SENSOR mode.
