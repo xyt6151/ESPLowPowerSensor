@@ -1,14 +1,16 @@
 # ESPLowPowerSensor Library
 
 ## Overview
-ESPLowPowerSensor is an Arduino library for ESP32 and ESP8266 boards, designed to simplify the implementation of low-power sensor projects. It provides an easy-to-use interface for managing multiple sensors with different sampling intervals while optimizing power consumption through sleep modes.
+ESPLowPowerSensor is a library for managing low-power sensor operations on ESP32 and ESP8266 boards. It provides an easy-to-use interface for managing multiple sensors with different sampling intervals while optimizing power consumption through sleep modes.
 
 ## Features
 - Support for both ESP32 and ESP8266 boards
 - Two operational modes: Per-Sensor and Single-Interval
-- Configurable low-power modes: Light Sleep and Deep Sleep
-- WiFi support with power-saving features
-- Easy sensor management with customizable wake and sleep functions
+- Interrupt-driven approach for efficient sensor management
+- Queue system to handle multiple sensor interrupts
+- Safeguards to ensure interrupt handlers complete before entering sleep mode
+- WiFi management for power optimization
+- Light sleep and deep sleep support (ESP32 only; ESP8266 falls back to delay for light sleep)
 
 ## Installation
 1. Download the library as a ZIP file

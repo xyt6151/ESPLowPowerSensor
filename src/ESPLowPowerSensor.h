@@ -4,6 +4,8 @@
 #include <Arduino.h>
 #include <functional>
 #include <vector>
+#include <queue>  // Add this line
+#include <atomic>  // Add this line at the top of the file
 
 // Include appropriate headers based on the ESP board being used
 #if defined(ESP32)
@@ -23,6 +25,7 @@
  *
  * This class provides functionality to manage multiple sensors with different
  * sampling intervals while optimizing power consumption through sleep modes.
+ * It uses an interrupt-driven approach for efficient sensor management.
  */
 class ESPLowPowerSensor {
 public:
@@ -115,6 +118,11 @@ private:
     static ESPLowPowerSensor* instance;
     static void IRAM_ATTR onTimerInterrupt();
     void handleInterrupt();
+
+    std::queue<size_t> _interruptQueue;  ///< Queue to store sensor indices for interrupt processing
+    void processInterruptQueue();  ///< Process the queue of sensor interrupts
+
+    std::atomic<bool> _interruptInProgress;  ///< Flag to indicate if an interrupt is being processed
 
     /**
      * @brief Runs the ESPLowPowerSensor in PER_SENSOR mode.

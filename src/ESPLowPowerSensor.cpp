@@ -19,7 +19,7 @@ int myFunction(int x, int y) {
   return x + y;
 }
 
-ESPLowPowerSensor::ESPLowPowerSensor() : _mode(Mode::SINGLE_INTERVAL), _wifiRequired(false), _lowPowerMode(LowPowerMode::DEEP_SLEEP), _singleInterval(0) {
+ESPLowPowerSensor::ESPLowPowerSensor() : _mode(Mode::SINGLE_INTERVAL), _wifiRequired(false), _lowPowerMode(LowPowerMode::DEEP_SLEEP), _singleInterval(0), _interruptInProgress(false) {
     instance = this;
 }
 
@@ -92,72 +92,44 @@ void ESPLowPowerSensor::run() {
     } else {
         runSingleIntervalMode();
     }
+    processInterruptQueue();  // Add this line
 }
 
 void ESPLowPowerSensor::runPerSensorMode() {
     unsigned long currentTime = millis();
+    unsigned long nextWakeTime = ULONG_MAX;
 
     for (auto& sensor : _sensors) {
-        if (currentTime - sensor.lastExecutionTime >= sensor.interval) {
-            // Execute wake function
-            if (sensor.wakeFunction) {
-                sensor.wakeFunction();
-            }
-
-            // Execute sleep function
-            if (sensor.sleepFunction) {
-                sensor.sleepFunction();
-            }
-
-            sensor.lastExecutionTime = currentTime;
+        unsigned long timeToWake = sensor.lastExecutionTime + sensor.interval - currentTime;
+        if (timeToWake < nextWakeTime) {
+            nextWakeTime = timeToWake;
         }
     }
 
-    // Use std::min_element to find the next wake time
-    auto nextWakeTime = std::min_element(_sensors.begin(), _sensors.end(),
-        [currentTime](const Sensor& a, const Sensor& b) {
-            unsigned long timeToWakeA = a.lastExecutionTime + a.interval - currentTime;
-            unsigned long timeToWakeB = b.lastExecutionTime + b.interval - currentTime;
-            return timeToWakeA < timeToWakeB;
-        });
+    // Set up the timer interrupt for the next wake time
+    setupTimerInterrupt(nextWakeTime);
 
-    unsigned long sleepDuration = nextWakeTime->lastExecutionTime + nextWakeTime->interval - currentTime;
-    goToSleep(sleepDuration);
+    // Go to sleep
+    goToSleep(nextWakeTime);
 }
 
 void ESPLowPowerSensor::runSingleIntervalMode() {
-    unsigned long currentTime = millis();
+    // Set up the timer interrupt for the single interval
+    setupTimerInterrupt(_singleInterval);
 
-    // Check if it's time to execute sensor functions
-    if (currentTime - _sensors[0].lastExecutionTime >= _singleInterval) {
-        // Execute wake functions for all sensors
-        for (auto& sensor : _sensors) {
-            if (sensor.wakeFunction) {
-                sensor.wakeFunction();
-            }
-        }
-
-        // Allow some time for sensor operations
-        delay(100);  // Adjust this delay as needed
-
-        // Execute sleep functions for all sensors
-        for (auto& sensor : _sensors) {
-            if (sensor.sleepFunction) {
-                sensor.sleepFunction();
-            }
-            sensor.lastExecutionTime = currentTime;
-        }
-
-        // Go to sleep for the single interval duration
-        goToSleep(_singleInterval);
-    }
+    // Go to sleep
+    goToSleep(_singleInterval);
 }
 
 void ESPLowPowerSensor::goToSleep(unsigned long sleepTime) const {
-    // Check if sleepTime is zero or negative (unsigned long can't be negative, but we'll check anyway)
+    // Check if sleepTime is zero or negative
     if (sleepTime == 0) {
-        // Handle the error - for now, we'll just return without sleeping
         return;
+    }
+
+    // Wait for any pending interrupt handlers to complete
+    while (_interruptInProgress) {
+        yield();  // Allow other tasks to run while waiting
     }
 
     if (_wifiRequired) {
@@ -282,21 +254,36 @@ void IRAM_ATTR ESPLowPowerSensor::onTimerInterrupt() {
 
 // Implement the handleInterrupt method
 void ESPLowPowerSensor::handleInterrupt() {
+    _interruptInProgress = true;
     unsigned long currentTime = millis();
 
-    for (auto& sensor : _sensors) {
-        if (currentTime - sensor.lastExecutionTime >= sensor.interval) {
-            // Execute wake function
+    // Queue sensor indices that need processing
+    for (size_t i = 0; i < _sensors.size(); ++i) {
+        if (currentTime - _sensors[i].lastExecutionTime >= _sensors[i].interval) {
+            _interruptQueue.push(i);
+        }
+    }
+    _interruptInProgress = false;
+}
+
+void ESPLowPowerSensor::processInterruptQueue() {
+    // Process all queued sensor interrupts
+    while (!_interruptQueue.empty()) {
+        size_t sensorIndex = _interruptQueue.front();
+        _interruptQueue.pop();
+
+        if (sensorIndex < _sensors.size()) {
+            auto& sensor = _sensors[sensorIndex];
+            
+            // Execute wake and sleep functions for the sensor
             if (sensor.wakeFunction) {
                 sensor.wakeFunction();
             }
-
-            // Execute sleep function
             if (sensor.sleepFunction) {
                 sensor.sleepFunction();
             }
 
-            sensor.lastExecutionTime = currentTime;
+            sensor.lastExecutionTime = millis();
         }
     }
 }

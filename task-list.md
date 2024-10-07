@@ -2,14 +2,8 @@
 Use this document to keep track of tasks that need to be done. Determine 
 
 ## Unfinished tasks
-1. Modify the library to use interrupts for executing user-created functions:
-    a. Update runPerSensorMode() and runSingleIntervalMode() to trigger interrupts instead of directly calling functions
-    b. Implement a queue system to handle multiple sensor interrupts that may occur close together
-    c. Add safeguards to ensure interrupt handlers complete before entering sleep mode
-    d. Update the documentation to reflect the new interrupt-driven approach
-    e. Create example sketches demonstrating the use of interrupt-driven sensor functions
-    f. Implement error handling for cases where interrupt setup fails
-    g. Add a method to disable interrupts if the user wants to revert to the original behavior
+1. Implement error handling for cases where interrupt setup fails
+2. Add a method to disable interrupts if the user wants to revert to the original behavior
 
 ## Finished tasks
 1. Create the basic library structure (header and source files)
@@ -40,3 +34,8 @@ Use this document to keep track of tasks that need to be done. Determine
 26. Research and implement a method to set up timer interrupts on both ESP32 and ESP8266
 27. Create a new interrupt service routine (ISR) to handle sensor wake and sleep functions
 28. Modify the addSensor() method to associate wake and sleep functions with specific interrupts
+29. Update runPerSensorMode() and runSingleIntervalMode() to trigger interrupts instead of directly calling functions
+30. Implement a queue system to handle multiple sensor interrupts that may occur close together
+31. Add safeguards to ensure interrupt handlers complete before entering sleep mode
+32. Update the documentation to reflect the new interrupt-driven approach
+33. Create example sketches demonstrating the use of interrupt-driven sensor functions
