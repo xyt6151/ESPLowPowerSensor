@@ -103,6 +103,7 @@ bool ESPLowPowerSensor::addSensor(std::function<void()> wakeFunction, std::funct
 
 void ESPLowPowerSensor::run() {
     if (_interruptsEnabled) {
+        handleInterrupt();  // Process any pending interrupts
         if (_mode == Mode::PER_SENSOR) {
             runPerSensorMode();
         } else {
@@ -292,12 +293,16 @@ bool ESPLowPowerSensor::setupTimerInterrupt(unsigned long interval) {
 // Implement the static ISR
 void IRAM_ATTR ESPLowPowerSensor::onTimerInterrupt() {
     if (instance) {
-        instance->handleInterrupt();
+        instance->_interruptOccurred = true;
     }
 }
 
-// Implement the handleInterrupt method
+// Modify the handleInterrupt method
 void ESPLowPowerSensor::handleInterrupt() {
+    if (!_interruptOccurred) {
+        return;
+    }
+
     _interruptInProgress = true;
     unsigned long currentTime = millis();
 
@@ -307,6 +312,8 @@ void ESPLowPowerSensor::handleInterrupt() {
             _interruptQueue.push(i);
         }
     }
+
+    _interruptOccurred = false;
     _interruptInProgress = false;
 }
 

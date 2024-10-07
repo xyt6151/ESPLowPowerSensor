@@ -116,6 +116,42 @@ public:
      */
     size_t getSensorCount() const;
 
+    /**
+     * @brief Gets the current operational mode.
+     * @return The current Mode.
+     */
+    inline Mode getMode() const { return _mode; }
+
+    /**
+     * @brief Checks if WiFi is required for sensor operations.
+     * @return True if WiFi is required, false otherwise.
+     */
+    inline bool isWifiRequired() const { return _wifiRequired; }
+
+    /**
+     * @brief Gets the current low power mode.
+     * @return The current LowPowerMode.
+     */
+    inline LowPowerMode getLowPowerMode() const { return _lowPowerMode; }
+
+    /**
+     * @brief Gets the single interval used in SINGLE_INTERVAL mode.
+     * @return The single interval in milliseconds.
+     */
+    inline unsigned long getSingleInterval() const { return _singleInterval; }
+
+    /**
+     * @brief Checks if interrupts are currently enabled.
+     * @return True if interrupts are enabled, false otherwise.
+     */
+    inline bool areInterruptsEnabled() const { return _interruptsEnabled; }
+
+    /**
+     * @brief Gets the number of sensors currently managed.
+     * @return The number of sensors.
+     */
+    inline size_t getSensorCount() const { return _sensorCount; }
+
 private:
     Mode _mode;                      ///< Current operational mode
     bool _wifiRequired;              ///< Whether WiFi is required during sensor operations
@@ -139,6 +175,8 @@ private:
     std::atomic<bool> _interruptInProgress;  ///< Flag to indicate if an interrupt is being processed
 
     bool _interruptsEnabled;  ///< Flag to indicate if interrupts are enabled
+
+    std::atomic<bool> _interruptOccurred;  ///< Flag to indicate if an interrupt has occurred
 
     /**
      * @brief Runs the ESPLowPowerSensor in PER_SENSOR mode.
