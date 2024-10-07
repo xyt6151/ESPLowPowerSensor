@@ -19,7 +19,7 @@ int myFunction(int x, int y) {
 }
 
 ESPLowPowerSensor::ESPLowPowerSensor() : _mode(Mode::SINGLE_INTERVAL), _wifiRequired(false), _lowPowerMode(LowPowerMode::DEEP_SLEEP), _singleInterval(0) {
-    // Constructor implementation
+    // Constructor initializes default values for member variables
 }
 
 bool ESPLowPowerSensor::init(Mode mode, bool wifiRequired, LowPowerMode lowPowerMode) {
@@ -87,7 +87,7 @@ void ESPLowPowerSensor::run() {
     if (_mode == Mode::PER_SENSOR) {
         runPerSensorMode();
     } else {
-        // Single interval mode will be implemented in the next task
+        runSingleIntervalMode();
     }
 }
 
@@ -120,6 +120,34 @@ void ESPLowPowerSensor::runPerSensorMode() {
     // Calculate sleep duration
     unsigned long sleepDuration = nextWakeTime - currentTime;
     goToSleep(sleepDuration);
+}
+
+void ESPLowPowerSensor::runSingleIntervalMode() {
+    unsigned long currentTime = millis();
+
+    // Check if it's time to execute sensor functions
+    if (currentTime - _sensors[0].lastExecutionTime >= _singleInterval) {
+        // Execute wake functions for all sensors
+        for (auto& sensor : _sensors) {
+            if (sensor.wakeFunction) {
+                sensor.wakeFunction();
+            }
+        }
+
+        // Allow some time for sensor operations
+        delay(100);  // Adjust this delay as needed
+
+        // Execute sleep functions for all sensors
+        for (auto& sensor : _sensors) {
+            if (sensor.sleepFunction) {
+                sensor.sleepFunction();
+            }
+            sensor.lastExecutionTime = currentTime;
+        }
+
+        // Go to sleep for the single interval duration
+        goToSleep(_singleInterval);
+    }
 }
 
 void ESPLowPowerSensor::goToSleep(unsigned long sleepTime) {
