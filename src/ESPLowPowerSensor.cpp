@@ -169,7 +169,10 @@ void ESPLowPowerSensor::goToSleep(unsigned long sleepTime) const {
     }
 
     if (_wifiRequired) {
-        wifiOff();
+        if (!wifiOff()) {
+            // Handle WiFi turn off error (e.g., log it or set an error flag)
+            // For now, we'll continue with sleep even if WiFi couldn't be turned off
+        }
     }
 
     if (_lowPowerMode == LowPowerMode::DEEP_SLEEP) {
@@ -190,26 +193,45 @@ void ESPLowPowerSensor::goToSleep(unsigned long sleepTime) const {
     }
 
     if (_wifiRequired) {
-        wifiOn();
+        if (!wifiOn()) {
+            // Handle WiFi turn on error (e.g., log it or set an error flag)
+            // For now, we'll continue even if WiFi couldn't be turned on
+        }
     }
 }
 
-void ESPLowPowerSensor::wifiOff() const {
+bool ESPLowPowerSensor::wifiOff() const {
     #if defined(ESP32)
-    esp_wifi_stop();
+    esp_err_t result = esp_wifi_stop();
+    if (result != ESP_OK) {
+        // Handle error (e.g., log it or set an error flag)
+        return false;
+    }
     #elif defined(ESP8266)
     WiFi.mode(WIFI_OFF);
-    WiFi.forceSleepBegin();
+    if (WiFi.forceSleepBegin() != WIFI_FORCE_SLEEP_BEGIN) {
+        // Handle error (e.g., log it or set an error flag)
+        return false;
+    }
     #endif
+    return true;
 }
 
-void ESPLowPowerSensor::wifiOn() const {
+bool ESPLowPowerSensor::wifiOn() const {
     #if defined(ESP32)
-    esp_wifi_start();
+    esp_err_t result = esp_wifi_start();
+    if (result != ESP_OK) {
+        // Handle error (e.g., log it or set an error flag)
+        return false;
+    }
     #elif defined(ESP8266)
-    WiFi.forceSleepWake();
+    if (WiFi.forceSleepWake() != WIFI_FORCE_SLEEP_WAKEUP) {
+        // Handle error (e.g., log it or set an error flag)
+        return false;
+    }
     delay(1); // Needed to ensure WiFi is fully awake
     #endif
+    return true;
 }
 
 bool ESPLowPowerSensor::setMode(Mode newMode) {

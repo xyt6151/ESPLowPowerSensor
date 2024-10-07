@@ -115,13 +115,15 @@ private:
 
     /**
      * @brief Turns off WiFi to conserve power.
+     * @return True if WiFi was successfully turned off, false otherwise.
      */
-    void wifiOff() const;
+    bool wifiOff() const;
 
     /**
      * @brief Turns on WiFi when needed for sensor operations.
+     * @return True if WiFi was successfully turned on, false otherwise.
      */
-    void wifiOn() const;
+    bool wifiOn() const;
 };
 
 #endif // ESP_LOW_POWER_SENSOR_H

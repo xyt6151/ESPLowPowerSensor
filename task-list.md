@@ -2,16 +2,13 @@
 Use this document to keep track of tasks that need to be done. Determine 
 
 ## Unfinished tasks
-1. Add error handling for WiFi operations in wifiOff() and wifiOn()
-2. Set up unit testing framework (e.g., ArduinoUnit or AUnit)
-3. Write test cases for ESPLowPowerSensor class initialization
-4. Implement tests for addSensor() method with various inputs
-5. Create tests for run() method in both Per-Sensor and Single-Interval modes
-6. Develop mock functions for WiFi and sleep operations to test goToSleep(), wifiOn(), and wifiOff() methods
-7. Write tests to verify correct behavior of runPerSensorMode() and runSingleIntervalMode()
-8. Implement edge case tests (e.g., adding many sensors, very short/long intervals)
-9. Set up Continuous Integration to run tests automatically on code changes
-10. Modify the library to use interrupts for executing user-created functions:
+1. Implement tests for addSensor() method with various inputs
+2. Create tests for run() method in both Per-Sensor and Single-Interval modes
+3. Develop mock functions for WiFi and sleep operations to test goToSleep(), wifiOn(), and wifiOff() methods
+4. Write tests to verify correct behavior of runPerSensorMode() and runSingleIntervalMode()
+5. Implement edge case tests (e.g., adding many sensors, very short/long intervals)
+6. Set up Continuous Integration to run tests automatically on code changes
+7. Modify the library to use interrupts for executing user-created functions:
     a. Research and implement a method to set up timer interrupts on both ESP32 and ESP8266
     b. Create a new interrupt service routine (ISR) to handle sensor wake and sleep functions
     c. Modify the addSensor() method to associate wake and sleep functions with specific interrupts
@@ -40,3 +37,6 @@ Use this document to keep track of tasks that need to be done. Determine
 14. Fix const correctness issues in runPerSensorMode() and runSingleIntervalMode()
 15. In runPerSensorMode(), use std::min_element to find the next wake time instead of iterating through the sensors twice
 16. In goToSleep(), add a check to ensure sleepTime is not zero or negative
+17. Add error handling for WiFi operations in wifiOff() and wifiOn()
+18. Set up unit testing framework (e.g., ArduinoUnit or AUnit)
+19. Write test cases for ESPLowPowerSensor class initialization
