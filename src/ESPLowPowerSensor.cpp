@@ -264,19 +264,8 @@ bool ESPLowPowerSensor::setupTimerInterrupt(unsigned long interval) {
         Serial.println("Failed to initialize timer");
         return false;
     }
-    if (timerAttachInterrupt(_timer, &ESPLowPowerSensor::onTimerInterrupt, true) != ESP_OK) {
-        Serial.println("Failed to attach timer interrupt");
-        timerEnd(_timer);
-        _timer = nullptr;
-        return false;
-    }
-    if (timerAlarmWrite(_timer, interval * 1000, true) != ESP_OK) {
-        Serial.println("Failed to set timer alarm");
-        timerDetachInterrupt(_timer);
-        timerEnd(_timer);
-        _timer = nullptr;
-        return false;
-    }
+    timerAttachInterrupt(_timer, &ESPLowPowerSensor::onTimerInterrupt, true);
+    timerAlarmWrite(_timer, interval * 1000, true);
     timerAlarmEnable(_timer);
     return true;
     #elif defined(ESP8266)
