@@ -275,3 +275,138 @@ test(mixedIntervals) {
   assertEqual(4, mediumCount);
   assertEqual(2, longCount);
 }
+
+// Add these new test cases after the existing ones
+
+test(digitalTrigger) {
+  ESPLowPowerSensor sensor;
+  assertTrue(sensor.init(ESPLowPowerSensor::Mode::PER_SENSOR, false, ESPLowPowerSensor::LowPowerMode::LIGHT_SLEEP));
+  
+  int triggerCount = 0;
+  const int DIGITAL_PIN = 2;
+  
+  assertTrue(sensor.addSensor([&triggerCount](){ triggerCount++; }, nullptr, ESPLowPowerSensor::TriggerMode::DIGITAL, HIGH, DIGITAL_PIN));
+  
+  // Simulate digital pin reading LOW
+  pinMode(DIGITAL_PIN, OUTPUT);
+  digitalWrite(DIGITAL_PIN, LOW);
+  sensor.run();
+  assertEqual(0, triggerCount);
+  
+  // Simulate digital pin reading HIGH
+  digitalWrite(DIGITAL_PIN, HIGH);
+  sensor.run();
+  assertEqual(1, triggerCount);
+}
+
+test(analogTrigger) {
+  ESPLowPowerSensor sensor;
+  assertTrue(sensor.init(ESPLowPowerSensor::Mode::PER_SENSOR, false, ESPLowPowerSensor::LowPowerMode::LIGHT_SLEEP));
+  
+  int triggerCount = 0;
+  const int ANALOG_PIN = A0;
+  const int THRESHOLD = 500;
+  
+  assertTrue(sensor.addSensor([&triggerCount](){ triggerCount++; }, nullptr, ESPLowPowerSensor::TriggerMode::ANALOG, THRESHOLD, ANALOG_PIN));
+  
+  // Simulate analog reading below threshold
+  analogWrite(ANALOG_PIN, 400);
+  sensor.run();
+  assertEqual(0, triggerCount);
+  
+  // Simulate analog reading above threshold
+  analogWrite(ANALOG_PIN, 600);
+  sensor.run();
+  assertEqual(1, triggerCount);
+}
+
+test(mixedTriggerModes) {
+  ESPLowPowerSensor sensor;
+  assertTrue(sensor.init(ESPLowPowerSensor::Mode::PER_SENSOR, false, ESPLowPowerSensor::LowPowerMode::LIGHT_SLEEP));
+  
+  int timeIntervalCount = 0, digitalCount = 0, analogCount = 0;
+  const int DIGITAL_PIN = 2;
+  const int ANALOG_PIN = A0;
+  const int ANALOG_THRESHOLD = 500;
+  
+  assertTrue(sensor.addSensor([&timeIntervalCount](){ timeIntervalCount++; }, nullptr, ESPLowPowerSensor::TriggerMode::TIME_INTERVAL, 100));
+  assertTrue(sensor.addSensor([&digitalCount](){ digitalCount++; }, nullptr, ESPLowPowerSensor::TriggerMode::DIGITAL, HIGH, DIGITAL_PIN));
+  assertTrue(sensor.addSensor([&analogCount](){ analogCount++; }, nullptr, ESPLowPowerSensor::TriggerMode::ANALOG, ANALOG_THRESHOLD, ANALOG_PIN));
+  
+  // Simulate mixed trigger conditions
+  pinMode(DIGITAL_PIN, OUTPUT);
+  digitalWrite(DIGITAL_PIN, HIGH);
+  analogWrite(ANALOG_PIN, 600);
+  
+  simulateDelay(sensor, 250);
+  
+  assertEqual(2, timeIntervalCount);
+  assertEqual(1, digitalCount);
+  assertEqual(1, analogCount);
+}
+
+// Update the existing tests to accommodate the new changes
+
+test(initialization) {
+  ESPLowPowerSensor sensor;
+  assertTrue(sensor.init(ESPLowPowerSensor::Mode::PER_SENSOR, false, ESPLowPowerSensor::LowPowerMode::LIGHT_SLEEP));
+  assertEqual(ESPLowPowerSensor::Mode::PER_SENSOR, sensor.getMode());
+  assertEqual(ESPLowPowerSensor::LowPowerMode::LIGHT_SLEEP, sensor.getLowPowerMode());
+}
+
+test(addSensor) {
+  ESPLowPowerSensor sensor;
+  assertTrue(sensor.init(ESPLowPowerSensor::Mode::PER_SENSOR, false, ESPLowPowerSensor::LowPowerMode::LIGHT_SLEEP));
+  
+  // Test adding a sensor with TIME_INTERVAL trigger mode
+  assertTrue(sensor.addSensor([](){}, nullptr, ESPLowPowerSensor::TriggerMode::TIME_INTERVAL, 1000));
+  
+  // Test adding a sensor with DIGITAL trigger mode
+  assertTrue(sensor.addSensor([](){}, nullptr, ESPLowPowerSensor::TriggerMode::DIGITAL, HIGH, 2));
+  
+  // Test adding a sensor with ANALOG trigger mode
+  assertTrue(sensor.addSensor([](){}, nullptr, ESPLowPowerSensor::TriggerMode::ANALOG, 500, A0));
+  
+  // Test adding more than MAX_SENSORS
+  for (int i = 0; i < MAX_SENSORS - 3; i++) {
+    assertTrue(sensor.addSensor([](){}, nullptr, ESPLowPowerSensor::TriggerMode::TIME_INTERVAL, 1000));
+  }
+  assertFalse(sensor.addSensor([](){}, nullptr, ESPLowPowerSensor::TriggerMode::TIME_INTERVAL, 1000));
+}
+
+test(runPerSensorMode) {
+  ESPLowPowerSensor sensor;
+  assertTrue(sensor.init(ESPLowPowerSensor::Mode::PER_SENSOR, false, ESPLowPowerSensor::LowPowerMode::LIGHT_SLEEP));
+  
+  int count1 = 0, count2 = 0;
+  assertTrue(sensor.addSensor([&count1](){ count1++; }, nullptr, ESPLowPowerSensor::TriggerMode::TIME_INTERVAL, 100));
+  assertTrue(sensor.addSensor([&count2](){ count2++; }, nullptr, ESPLowPowerSensor::TriggerMode::TIME_INTERVAL, 200));
+  
+  simulateDelay(sensor, 250);
+  
+  assertEqual(2, count1);
+  assertEqual(1, count2);
+}
+
+test(runSingleIntervalMode) {
+  ESPLowPowerSensor sensor;
+  assertTrue(sensor.init(ESPLowPowerSensor::Mode::SINGLE_INTERVAL, false, ESPLowPowerSensor::LowPowerMode::LIGHT_SLEEP));
+  
+  int count1 = 0, count2 = 0;
+  assertTrue(sensor.addSensor([&count1](){ count1++; }, nullptr, ESPLowPowerSensor::TriggerMode::TIME_INTERVAL, 100));
+  assertTrue(sensor.addSensor([&count2](){ count2++; }, nullptr, ESPLowPowerSensor::TriggerMode::TIME_INTERVAL, 100));
+  
+  simulateDelay(sensor, 250);
+  
+  assertEqual(2, count1);
+  assertEqual(2, count2);
+}
+
+// Add a helper function to simulate delay while allowing the sensor to run
+void simulateDelay(ESPLowPowerSensor& sensor, unsigned long ms) {
+  unsigned long start = millis();
+  while (millis() - start < ms) {
+    sensor.run();
+    delay(1);
+  }
+}

@@ -2,27 +2,29 @@
 #KEYWORD	KEYWORD_TOKENTYPE	REFERENCE_LINK	RSYNTAXTEXTAREA_TOKENTYPE
 
 
-# Syntax Coloring Map For ExampleLibrary
+# Syntax Coloring Map For ESPLowPowerSensor
 
 # Datatypes (KEYWORD1)
-Test	KEYWORD1
+ESPLowPowerSensor	KEYWORD1
 
 # Methods and Functions (KEYWORD2)
-doSomething	KEYWORD2
-
-# Instances (KEYWORD2)
-
-# Constants (LITERAL1)
-ESPLowPowerSensor	KEYWORD1
 init	KEYWORD2
 addSensor	KEYWORD2
 run	KEYWORD2
 setMode	KEYWORD2
-disableInterrupts	KEYWORD2
+getMode	KEYWORD2
+isWifiRequired	KEYWORD2
+getLowPowerMode	KEYWORD2
+getSingleInterval	KEYWORD2
+areInterruptsEnabled	KEYWORD2
 setWiFiCredentials	KEYWORD2
-Mode	KEYWORD3
-LowPowerMode	KEYWORD3
-SINGLE_INTERVAL	LITERAL1
+disableInterrupts	KEYWORD2
+
+# Constants (LITERAL1)
 PER_SENSOR	LITERAL1
+SINGLE_INTERVAL	LITERAL1
 LIGHT_SLEEP	LITERAL1
 DEEP_SLEEP	LITERAL1
+TIME_INTERVAL	LITERAL1
+DIGITAL	LITERAL1
+ANALOG	LITERAL1

@@ -2,17 +2,17 @@
 Use this document to keep track of tasks that need to be done.
 
 ## Unfinished tasks
-1. Update library.properties with new keywords related to trigger modes
-2. Add new test cases for different trigger modes in test files
-3. Modify existing tests to accommodate the changes
-4. Review and update any other relevant documentation or configuration files
-5. Update keywords.txt with new keywords related to trigger modes
-6. Review and update .github/workflows/ci.yml if necessary
-7. Update include/README and lib/README if they contain relevant documentation
-8. Review and update .vscode/c_cpp_properties.json if necessary
-9. Review and update platformio.ini if necessary
+1. Review and update .github/workflows/ci.yml if necessary
 
 ## Finished tasks
+71. Review and update platformio.ini if necessary
+70. Review and update .vscode/c_cpp_properties.json if necessary
+69. Update include/README and lib/README if they contain relevant documentation
+68. Update keywords.txt with new keywords related to trigger modes
+67. Review and update any other relevant documentation or configuration files
+66. Modify existing tests to accommodate the changes
+65. Add new test cases for different trigger modes in test files
+64. Update library.properties with new keywords related to trigger modes
 63. Update README.md with information about new trigger modes and usage examples
 62. Create new examples demonstrating digital and analog trigger usage
 61. Update existing example files to showcase new trigger modes
