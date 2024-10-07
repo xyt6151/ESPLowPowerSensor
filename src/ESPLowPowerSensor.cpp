@@ -63,14 +63,16 @@ bool ESPLowPowerSensor::init(Mode mode, bool wifiRequired, LowPowerMode lowPower
 
 bool ESPLowPowerSensor::addSensor(std::function<void()> wakeFunction, std::function<void()> sleepFunction, unsigned long interval) {
     if (_mode == Mode::PER_SENSOR && interval == 0) {
-        return false; // Invalid interval for PER_SENSOR mode
+        Serial.println("Invalid interval for PER_SENSOR mode");
+        return false;
     }
 
     if (_mode == Mode::SINGLE_INTERVAL) {
         if (_sensors.empty()) {
             _singleInterval = interval;
         } else if (interval != _singleInterval) {
-            return false; // All sensors must have the same interval in SINGLE_INTERVAL mode
+            Serial.println("All sensors must have the same interval in SINGLE_INTERVAL mode");
+            return false;
         }
     }
 
@@ -79,6 +81,7 @@ bool ESPLowPowerSensor::addSensor(std::function<void()> wakeFunction, std::funct
 
     // Set up timer interrupt for this sensor
     if (!setupTimerInterrupt(interval)) {
+        Serial.println("Failed to set up timer interrupt for sensor");
         _sensors.pop_back(); // Remove the sensor if interrupt setup fails
         return false;
     }
@@ -233,14 +236,31 @@ bool ESPLowPowerSensor::setupTimerInterrupt(unsigned long interval) {
     #if defined(ESP32)
     _timer = timerBegin(0, 80, true);  // Timer 0, prescaler 80, count up
     if (_timer == nullptr) {
+        Serial.println("Failed to initialize timer");
         return false;
     }
-    timerAttachInterrupt(_timer, &ESPLowPowerSensor::onTimerInterrupt, true);
-    timerAlarmWrite(_timer, interval * 1000, true);  // Convert ms to us
+    if (timerAttachInterrupt(_timer, &ESPLowPowerSensor::onTimerInterrupt, true) != ESP_OK) {
+        Serial.println("Failed to attach timer interrupt");
+        timerEnd(_timer);
+        _timer = nullptr;
+        return false;
+    }
+    if (timerAlarmWrite(_timer, interval * 1000, true) != ESP_OK) {
+        Serial.println("Failed to set timer alarm");
+        timerDetachInterrupt(_timer);
+        timerEnd(_timer);
+        _timer = nullptr;
+        return false;
+    }
     timerAlarmEnable(_timer);
     return true;
     #elif defined(ESP8266)
-    _ticker.attach_ms(interval, ESPLowPowerSensor::onTimerInterrupt);
+    try {
+        _ticker.attach_ms(interval, ESPLowPowerSensor::onTimerInterrupt);
+    } catch (const std::exception& e) {
+        Serial.println("Failed to set up timer interrupt: " + String(e.what()));
+        return false;
+    }
     return true;
     #endif
 }
