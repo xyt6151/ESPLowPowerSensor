@@ -6,6 +6,8 @@
 #include <vector>
 #include <queue>  // Add this line
 #include <atomic>  // Add this line at the top of the file
+#include <array>  // Add this line
+#define MAX_SENSORS 10 // Define the maximum number of sensors
 
 // Include appropriate headers based on the ESP board being used
 #if defined(ESP32)
@@ -108,11 +110,17 @@ public:
      */
     bool disableInterrupts();
 
+    /**
+     * @brief Returns the number of sensors currently managed.
+     * @return The number of sensors.
+     */
+    size_t getSensorCount() const;
+
 private:
     Mode _mode;                      ///< Current operational mode
     bool _wifiRequired;              ///< Whether WiFi is required during sensor operations
     LowPowerMode _lowPowerMode;      ///< Current low-power mode
-    std::vector<Sensor> _sensors;    ///< Collection of managed sensors
+    std::array<Sensor, MAX_SENSORS> _sensors;  ///< Collection of managed sensors
     unsigned long _singleInterval;   ///< Interval used in SINGLE_INTERVAL mode
 
     #if defined(ESP32)

@@ -2,7 +2,11 @@
 Use this document to keep track of tasks that need to be done.
 
 ## Unfinished tasks
-No unfinished tasks remaining.
+1. Optimize the interrupt handling routine to minimize the time spent in the ISR.
+2. Use inline functions for small, frequently called functions to reduce function call overhead.
+3. Implement a more efficient queue system for interrupt handling, possibly using a circular buffer.
+4. Use constexpr for compile-time computations where applicable.
+5. Implement lazy initialization for WiFi to reduce startup time and power consumption.
 
 ## Finished tasks
 1. Create the basic library structure (header and source files)
@@ -40,3 +44,5 @@ No unfinished tasks remaining.
 33. Create example sketches demonstrating the use of interrupt-driven sensor functions
 34. Implement error handling for cases where interrupt setup fails
 35. Add a method to disable interrupts if the user wants to revert to the original behavior
+36. Use static allocation instead of dynamic allocation where possible to reduce memory fragmentation and improve performance.
+37. Implement power-efficient delay using ESP32's and ESP8266's low-power timer peripherals instead of using delay() function.

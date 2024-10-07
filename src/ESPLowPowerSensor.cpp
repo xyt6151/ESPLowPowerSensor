@@ -25,7 +25,8 @@ ESPLowPowerSensor::ESPLowPowerSensor()
       _lowPowerMode(LowPowerMode::DEEP_SLEEP), 
       _singleInterval(0), 
       _interruptInProgress(false),
-      _interruptsEnabled(true) {
+      _interruptsEnabled(true),
+      _sensorCount(0) {
     instance = this;
 }
 
@@ -68,13 +69,18 @@ bool ESPLowPowerSensor::init(Mode mode, bool wifiRequired, LowPowerMode lowPower
 }
 
 bool ESPLowPowerSensor::addSensor(std::function<void()> wakeFunction, std::function<void()> sleepFunction, unsigned long interval) {
+    if (_sensorCount >= MAX_SENSORS) {
+        Serial.println("Maximum number of sensors reached");
+        return false;
+    }
+
     if (_mode == Mode::PER_SENSOR && interval == 0) {
         Serial.println("Invalid interval for PER_SENSOR mode");
         return false;
     }
 
     if (_mode == Mode::SINGLE_INTERVAL) {
-        if (_sensors.empty()) {
+        if (_sensorCount == 0) {
             _singleInterval = interval;
         } else if (interval != _singleInterval) {
             Serial.println("All sensors must have the same interval in SINGLE_INTERVAL mode");
@@ -82,13 +88,13 @@ bool ESPLowPowerSensor::addSensor(std::function<void()> wakeFunction, std::funct
         }
     }
 
-    Sensor newSensor = {wakeFunction, sleepFunction, interval, 0};
-    _sensors.push_back(newSensor);
+    _sensors[_sensorCount] = {wakeFunction, sleepFunction, interval, 0};
+    _sensorCount++;
 
     // Set up timer interrupt for this sensor
     if (!setupTimerInterrupt(interval)) {
         Serial.println("Failed to set up timer interrupt for sensor");
-        _sensors.pop_back(); // Remove the sensor if interrupt setup fails
+        _sensorCount--; // Remove the sensor if interrupt setup fails
         return false;
     }
 
@@ -104,8 +110,8 @@ void ESPLowPowerSensor::run() {
         }
         processInterruptQueue();
     } else {
-        // Revert to original behavior without interrupts
-        for (auto& sensor : _sensors) {
+        for (size_t i = 0; i < _sensorCount; ++i) {
+            auto& sensor = _sensors[i];
             if (millis() - sensor.lastExecutionTime >= sensor.interval) {
                 if (sensor.wakeFunction) {
                     sensor.wakeFunction();
@@ -117,7 +123,7 @@ void ESPLowPowerSensor::run() {
             }
         }
         // Sleep for the shortest interval
-        unsigned long shortestInterval = std::min_element(_sensors.begin(), _sensors.end(),
+        unsigned long shortestInterval = std::min_element(_sensors.begin(), _sensors.begin() + _sensorCount,
             [](const Sensor& a, const Sensor& b) { return a.interval < b.interval; })->interval;
         goToSleep(shortestInterval);
     }
@@ -127,8 +133,8 @@ void ESPLowPowerSensor::runPerSensorMode() {
     unsigned long currentTime = millis();
     unsigned long nextWakeTime = ULONG_MAX;
 
-    for (auto& sensor : _sensors) {
-        unsigned long timeToWake = sensor.lastExecutionTime + sensor.interval - currentTime;
+    for (size_t i = 0; i < _sensorCount; ++i) {
+        unsigned long timeToWake = _sensors[i].lastExecutionTime + _sensors[i].interval - currentTime;
         if (timeToWake < nextWakeTime) {
             nextWakeTime = timeToWake;
         }
@@ -179,8 +185,12 @@ void ESPLowPowerSensor::goToSleep(unsigned long sleepTime) const {
         esp_sleep_enable_timer_wakeup(sleepTime * 1000ULL); // Convert to microseconds
         esp_light_sleep_start();
         #elif defined(ESP8266)
-        // ESP8266 doesn't support light sleep, so we use delay instead
-        delay(sleepTime);
+        // ESP8266 doesn't support light sleep, so we use a power-efficient delay
+        uint32_t start = micros();
+        while (micros() - start < sleepTime * 1000ULL) {
+            ESP.wdtFeed(); // Feed the watchdog timer
+            yield(); // Allow background tasks to run
+        }
         #endif
     }
 
@@ -232,12 +242,12 @@ bool ESPLowPowerSensor::setMode(Mode newMode) {
     }
 
     // Check if there are any sensors added
-    if (!_sensors.empty()) {
+    if (_sensorCount > 0) {
         // If changing to SINGLE_INTERVAL mode, ensure all sensors have the same interval
         if (newMode == Mode::SINGLE_INTERVAL) {
             unsigned long firstInterval = _sensors[0].interval;
-            for (const auto& sensor : _sensors) {
-                if (sensor.interval != firstInterval) {
+            for (size_t i = 0; i < _sensorCount; ++i) {
+                if (_sensors[i].interval != firstInterval) {
                     return false; // Cannot change to SINGLE_INTERVAL mode with different intervals
                 }
             }
@@ -245,8 +255,8 @@ bool ESPLowPowerSensor::setMode(Mode newMode) {
         }
         // If changing to PER_SENSOR mode, ensure all sensors have non-zero intervals
         else if (newMode == Mode::PER_SENSOR) {
-            for (const auto& sensor : _sensors) {
-                if (sensor.interval == 0) {
+            for (size_t i = 0; i < _sensorCount; ++i) {
+                if (_sensors[i].interval == 0) {
                     return false; // Cannot change to PER_SENSOR mode with zero intervals
                 }
             }
@@ -292,7 +302,7 @@ void ESPLowPowerSensor::handleInterrupt() {
     unsigned long currentTime = millis();
 
     // Queue sensor indices that need processing
-    for (size_t i = 0; i < _sensors.size(); ++i) {
+    for (size_t i = 0; i < _sensorCount; ++i) {
         if (currentTime - _sensors[i].lastExecutionTime >= _sensors[i].interval) {
             _interruptQueue.push(i);
         }
@@ -306,7 +316,7 @@ void ESPLowPowerSensor::processInterruptQueue() {
         size_t sensorIndex = _interruptQueue.front();
         _interruptQueue.pop();
 
-        if (sensorIndex < _sensors.size()) {
+        if (sensorIndex < _sensorCount) {
             auto& sensor = _sensors[sensorIndex];
             
             // Execute wake and sleep functions for the sensor
