@@ -1,11 +1,12 @@
 # ESPLowPowerSensor Library
 
 ## Overview
-ESPLowPowerSensor is a library for managing low-power sensor operations on ESP32 and ESP8266 boards. It provides an easy-to-use interface for managing multiple sensors with different sampling intervals while optimizing power consumption through sleep modes. The library uses an interrupt-driven approach for efficient sensor management, ensuring precise timing and minimal power consumption.
+ESPLowPowerSensor is a library for managing low-power sensor operations on ESP32 and ESP8266 boards. It provides an easy-to-use interface for managing multiple sensors with different sampling intervals and trigger modes while optimizing power consumption through sleep modes. The library uses an interrupt-driven approach for efficient sensor management, ensuring precise timing and minimal power consumption.
 
 ## Features
 - Support for both ESP32 and ESP8266 boards
 - Two operational modes: Per-Sensor and Single-Interval
+- Three trigger modes: Time Interval, Digital, and Analog
 - Interrupt-driven approach for efficient and precise sensor management
 - Queue system to handle multiple sensor interrupts
 - WiFi credential management for easy configuration of wireless connectivity
@@ -18,18 +19,75 @@ ESPLowPowerSensor is a library for managing low-power sensor operations on ESP32
 
 ## Usage
 ### Initialization
-```
+```cpp
 #include <ESPLowPowerSensor.h>
 
 ESPLowPowerSensor lowPowerSensor;
 
 void setup() {
-  // Initialize the library
-  lowPowerSensor.init(ESPLowPowerSensor::Mode::PER_SENSOR, false, ESPLowPowerSensor::LowPowerMode::DEEP_SLEEP);
+  // Initialize the library in Per-Sensor mode, without WiFi, using light sleep
+  lowPowerSensor.init(ESPLowPowerSensor::Mode::PER_SENSOR, false, ESPLowPowerSensor::LowPowerMode::LIGHT_SLEEP);
+}
+```
+
+### Adding Sensors
+You can add sensors with different trigger modes:
+
+1. Time Interval Trigger:
+```cpp
+lowPowerSensor.addSensor(readSensor, nullptr, ESPLowPowerSensor::TriggerMode::TIME_INTERVAL, 1000);
+```
+
+2. Digital Trigger:
+```cpp
+lowPowerSensor.addSensor(detectMotion, nullptr, ESPLowPowerSensor::TriggerMode::DIGITAL, LOW, MOTION_PIN);
+```
+
+3. Analog Trigger:
+```cpp
+lowPowerSensor.addSensor(readTemperature, nullptr, ESPLowPowerSensor::TriggerMode::ANALOG, 500, TEMPERATURE_PIN);
+```
+
+### Running the Sensor Manager
+In your main loop, simply call the `run()` method:
+
+```cpp
+void loop() {
+  lowPowerSensor.run();
+}
+```
+
+## Example: Digital and Analog Triggers
+Here's an example demonstrating the use of digital and analog triggers:
+
+```cpp
+#include <ESPLowPowerSensor.h>
+
+ESPLowPowerSensor lowPowerSensor;
+
+const int TEMPERATURE_PIN = A0;
+const int MOTION_PIN = 2;
+
+void readTemperature() {
+  int temperature = analogRead(TEMPERATURE_PIN);
+  Serial.print("Temperature: ");
+  Serial.println(temperature);
+}
+
+void detectMotion() {
+  Serial.println("Motion detected!");
+}
+
+void setup() {
+  Serial.begin(115200);
   
-  // Add sensors
-  lowPowerSensor.addSensor(readSensor1, nullptr, 5000);  // 5 second interval
-  lowPowerSensor.addSensor(readSensor2, nullptr, 10000); // 10 second interval
+  lowPowerSensor.init(ESPLowPowerSensor::Mode::PER_SENSOR, false, ESPLowPowerSensor::LowPowerMode::LIGHT_SLEEP);
+  
+  // Add temperature sensor with analog trigger (threshold: 500)
+  lowPowerSensor.addSensor(readTemperature, nullptr, ESPLowPowerSensor::TriggerMode::ANALOG, 500, TEMPERATURE_PIN);
+  
+  // Add motion sensor with digital trigger (trigger on LOW)
+  lowPowerSensor.addSensor(detectMotion, nullptr, ESPLowPowerSensor::TriggerMode::DIGITAL, LOW, MOTION_PIN);
 }
 
 void loop() {
@@ -37,61 +95,12 @@ void loop() {
 }
 ```
 
-### Adding Sensors
-```
-// Add a sensor with only a wake function
-lowPowerSensor.addSensor(wakeFunctionPtr, nullptr, interval);
-
-// Add a sensor with both wake and sleep functions
-lowPowerSensor.addSensor(wakeFunctionPtr, sleepFunctionPtr, interval);
-```
-
-## Operational Modes
-### Per-Sensor Mode
-In this mode, each sensor has its own sampling interval. The ESP will wake up to handle each sensor independently.
-
-### Single-Interval Mode
-All sensors are sampled at a fixed interval. The ESP wakes up, samples all sensors, and then goes back to sleep.
-
-## Low-Power Modes
-### Deep Sleep
-Offers the lowest power consumption but requires a full reboot on wake-up.
-
-### Light Sleep
-Provides faster wake-up times but with slightly higher power consumption. Note: Not available on ESP8266.
-
-## Examples
-See the \`examples\` folder for detailed usage examples:
-- PerSensorMode: Basic usage of Per-Sensor mode
-- SingleIntervalWiFi: Single-Interval mode with WiFi enabled
-- PerSensorWithSleep: Per-Sensor mode with custom sleep functions
-
-## Compatibility
-- ESP32 boards
-- ESP8266 boards
-
-## License
-This library is released under the MIT License.
+This example sets up two sensors:
+1. A temperature sensor that triggers when the analog reading exceeds 500.
+2. A motion sensor that triggers when the digital pin reads LOW.
 
 ## Contributing
 Contributions to the ESPLowPowerSensor library are welcome. Please submit pull requests or open issues on the GitHub repository.
 
-## WiFi Management
-
-To use WiFi with the ESPLowPowerSensor library, you need to set the WiFi credentials before initializing the library. Use the `setWiFiCredentials` method to do this:
-
-```cpp
-ESPLowPowerSensor lowPowerSensor;
-
-void setup() {
-  // Set WiFi credentials
-  lowPowerSensor.setWiFiCredentials("YourSSID", "YourPassword");
-
-  // Initialize the library with WiFi enabled
-  lowPowerSensor.init(ESPLowPowerSensor::Mode::PER_SENSOR, true, ESPLowPowerSensor::LowPowerMode::LIGHT_SLEEP);
-
-  // ... rest of your setup code ...
-}
-```
-
-The library will automatically handle WiFi connections when needed, based on the `wifiRequired` parameter in the `init` method.
+## License
+This library is released under the MIT License.
