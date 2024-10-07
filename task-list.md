@@ -2,9 +2,8 @@
 Use this document to keep track of tasks that need to be done. Determine 
 
 ## Unfinished tasks
-1. Implement edge case tests (e.g., adding many sensors, very short/long intervals)
-2. Set up Continuous Integration to run tests automatically on code changes
-3. Modify the library to use interrupts for executing user-created functions:
+1. Set up Continuous Integration to run tests automatically on code changes
+2. Modify the library to use interrupts for executing user-created functions:
     a. Research and implement a method to set up timer interrupts on both ESP32 and ESP8266
     b. Create a new interrupt service routine (ISR) to handle sensor wake and sleep functions
     c. Modify the addSensor() method to associate wake and sleep functions with specific interrupts
@@ -40,3 +39,4 @@ Use this document to keep track of tasks that need to be done. Determine
 21. Create tests for run() method in both Per-Sensor and Single-Interval modes
 22. Develop mock functions for WiFi and sleep operations to test goToSleep(), wifiOn(), and wifiOff() methods
 23. Write tests to verify correct behavior of runPerSensorMode() and runSingleIntervalMode()
+24. Implement edge case tests (e.g., adding many sensors, very short/long intervals)

@@ -218,3 +218,60 @@ test(runSingleIntervalMode) {
   assertEqual(3, sensor1Count);
   assertEqual(3, sensor2Count);
 }
+
+// Add these new test cases to the ESPLowPowerSensorTest.ino file
+
+test(addManySensors) {
+  ESPLowPowerSensor sensor;
+  assertTrue(sensor.init(ESPLowPowerSensor::Mode::PER_SENSOR, false, ESPLowPowerSensor::LowPowerMode::LIGHT_SLEEP));
+  
+  const int maxSensors = 100; // Adjust this value based on the expected maximum number of sensors
+  for (int i = 0; i < maxSensors; i++) {
+    assertTrue(sensor.addSensor([](){ /* Do nothing */ }, nullptr, (i + 1) * 100));
+  }
+  
+  // Try to add one more sensor, which should fail
+  assertFalse(sensor.addSensor([](){ /* Do nothing */ }, nullptr, (maxSensors + 1) * 100));
+}
+
+test(veryShortInterval) {
+  ESPLowPowerSensor sensor;
+  assertTrue(sensor.init(ESPLowPowerSensor::Mode::PER_SENSOR, false, ESPLowPowerSensor::LowPowerMode::LIGHT_SLEEP));
+  
+  int sensorCount = 0;
+  assertTrue(sensor.addSensor([&sensorCount](){ sensorCount++; }, nullptr, 1)); // 1ms interval
+  
+  simulateDelay(sensor, 10);
+  
+  // The sensor should have been called multiple times, but not necessarily 10 times due to execution time
+  assertTrue(sensorCount > 1);
+  assertTrue(sensorCount <= 10);
+}
+
+test(veryLongInterval) {
+  ESPLowPowerSensor sensor;
+  assertTrue(sensor.init(ESPLowPowerSensor::Mode::PER_SENSOR, false, ESPLowPowerSensor::LowPowerMode::LIGHT_SLEEP));
+  
+  int sensorCount = 0;
+  assertTrue(sensor.addSensor([&sensorCount](){ sensorCount++; }, nullptr, 3600000)); // 1 hour interval
+  
+  simulateDelay(sensor, 10000); // Run for 10 seconds
+  
+  assertEqual(0, sensorCount); // The sensor should not have been called
+}
+
+test(mixedIntervals) {
+  ESPLowPowerSensor sensor;
+  assertTrue(sensor.init(ESPLowPowerSensor::Mode::PER_SENSOR, false, ESPLowPowerSensor::LowPowerMode::LIGHT_SLEEP));
+  
+  int shortCount = 0, mediumCount = 0, longCount = 0;
+  assertTrue(sensor.addSensor([&shortCount](){ shortCount++; }, nullptr, 100));    // 100ms interval
+  assertTrue(sensor.addSensor([&mediumCount](){ mediumCount++; }, nullptr, 250));  // 250ms interval
+  assertTrue(sensor.addSensor([&longCount](){ longCount++; }, nullptr, 500));      // 500ms interval
+  
+  simulateDelay(sensor, 1000);
+  
+  assertEqual(10, shortCount);
+  assertEqual(4, mediumCount);
+  assertEqual(2, longCount);
+}
