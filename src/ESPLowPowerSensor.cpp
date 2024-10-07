@@ -309,7 +309,12 @@ void ESPLowPowerSensor::handleInterrupt() {
     // Queue sensor indices that need processing
     for (size_t i = 0; i < _sensorCount; ++i) {
         if (currentTime - _sensors[i].lastExecutionTime >= _sensors[i].interval) {
-            _interruptQueue.push(i);
+            if (!_interruptQueue.full()) {
+                _interruptQueue.push(i);
+            } else {
+                // Handle queue overflow (e.g., log an error)
+                Serial.println("Interrupt queue overflow");
+            }
         }
     }
 
@@ -318,11 +323,8 @@ void ESPLowPowerSensor::handleInterrupt() {
 }
 
 void ESPLowPowerSensor::processInterruptQueue() {
-    // Process all queued sensor interrupts
-    while (!_interruptQueue.empty()) {
-        size_t sensorIndex = _interruptQueue.front();
-        _interruptQueue.pop();
-
+    size_t sensorIndex;
+    while (_interruptQueue.pop(sensorIndex)) {
         if (sensorIndex < _sensorCount) {
             auto& sensor = _sensors[sensorIndex];
             

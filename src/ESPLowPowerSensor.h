@@ -21,6 +21,48 @@
 #error "This library only supports ESP32 and ESP8266 boards"
 #endif
 
+// Add this near the top of the file, after the includes
+#define CIRCULAR_BUFFER_SIZE 32 // Adjust this size as needed
+
+// Add this new class definition before the ESPLowPowerSensor class
+class CircularBuffer {
+private:
+    size_t _buffer[CIRCULAR_BUFFER_SIZE];
+    size_t _head;
+    size_t _tail;
+    bool _full;
+
+public:
+    CircularBuffer() : _head(0), _tail(0), _full(false) {}
+
+    void push(size_t value) {
+        _buffer[_head] = value;
+        if (_full) {
+            _tail = (_tail + 1) % CIRCULAR_BUFFER_SIZE;
+        }
+        _head = (_head + 1) % CIRCULAR_BUFFER_SIZE;
+        _full = _head == _tail;
+    }
+
+    bool pop(size_t& value) {
+        if (empty()) {
+            return false;
+        }
+        value = _buffer[_tail];
+        _full = false;
+        _tail = (_tail + 1) % CIRCULAR_BUFFER_SIZE;
+        return true;
+    }
+
+    bool empty() const {
+        return (!_full && (_head == _tail));
+    }
+
+    bool full() const {
+        return _full;
+    }
+};
+
 /**
  * @class ESPLowPowerSensor
  * @brief A class to manage low-power sensor operations on ESP32 and ESP8266 boards.
@@ -169,7 +211,10 @@ private:
     static void IRAM_ATTR onTimerInterrupt();
     void handleInterrupt();
 
-    std::queue<size_t> _interruptQueue;  ///< Queue to store sensor indices for interrupt processing
+    // Replace this line:
+    // std::queue<size_t> _interruptQueue;
+    // With this:
+    CircularBuffer _interruptQueue;  ///< Queue to store sensor indices for interrupt processing
     void processInterruptQueue();  ///< Process the queue of sensor interrupts
 
     std::atomic<bool> _interruptInProgress;  ///< Flag to indicate if an interrupt is being processed
