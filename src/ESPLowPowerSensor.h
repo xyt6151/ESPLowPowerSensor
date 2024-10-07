@@ -21,45 +21,25 @@
 #error "This library only supports ESP32 and ESP8266 boards"
 #endif
 
-// Add this near the top of the file, after the includes
-#define CIRCULAR_BUFFER_SIZE 32 // Adjust this size as needed
+// Add these constexpr definitions near the top of the file, after the includes
+constexpr size_t MAX_SENSORS = 10;
+constexpr size_t CIRCULAR_BUFFER_SIZE = 32;
 
-// Add this new class definition before the ESPLowPowerSensor class
+// Update the CircularBuffer class
 class CircularBuffer {
 private:
-    size_t _buffer[CIRCULAR_BUFFER_SIZE];
+    std::array<size_t, CIRCULAR_BUFFER_SIZE> _buffer;
     size_t _head;
     size_t _tail;
     bool _full;
 
 public:
-    CircularBuffer() : _head(0), _tail(0), _full(false) {}
+    constexpr CircularBuffer() : _buffer{}, _head(0), _tail(0), _full(false) {}
 
-    void push(size_t value) {
-        _buffer[_head] = value;
-        if (_full) {
-            _tail = (_tail + 1) % CIRCULAR_BUFFER_SIZE;
-        }
-        _head = (_head + 1) % CIRCULAR_BUFFER_SIZE;
-        _full = _head == _tail;
-    }
+    // ... rest of the CircularBuffer class implementation ...
 
-    bool pop(size_t& value) {
-        if (empty()) {
-            return false;
-        }
-        value = _buffer[_tail];
-        _full = false;
-        _tail = (_tail + 1) % CIRCULAR_BUFFER_SIZE;
-        return true;
-    }
-
-    bool empty() const {
-        return (!_full && (_head == _tail));
-    }
-
-    bool full() const {
-        return _full;
+    constexpr size_t capacity() const {
+        return CIRCULAR_BUFFER_SIZE;
     }
 };
 
@@ -162,37 +142,37 @@ public:
      * @brief Gets the current operational mode.
      * @return The current Mode.
      */
-    inline Mode getMode() const { return _mode; }
+    constexpr Mode getMode() const { return _mode; }
 
     /**
      * @brief Checks if WiFi is required for sensor operations.
      * @return True if WiFi is required, false otherwise.
      */
-    inline bool isWifiRequired() const { return _wifiRequired; }
+    constexpr bool isWifiRequired() const { return _wifiRequired; }
 
     /**
      * @brief Gets the current low power mode.
      * @return The current LowPowerMode.
      */
-    inline LowPowerMode getLowPowerMode() const { return _lowPowerMode; }
+    constexpr LowPowerMode getLowPowerMode() const { return _lowPowerMode; }
 
     /**
      * @brief Gets the single interval used in SINGLE_INTERVAL mode.
      * @return The single interval in milliseconds.
      */
-    inline unsigned long getSingleInterval() const { return _singleInterval; }
+    constexpr unsigned long getSingleInterval() const { return _singleInterval; }
 
     /**
      * @brief Checks if interrupts are currently enabled.
      * @return True if interrupts are enabled, false otherwise.
      */
-    inline bool areInterruptsEnabled() const { return _interruptsEnabled; }
+    constexpr bool areInterruptsEnabled() const { return _interruptsEnabled; }
 
     /**
      * @brief Gets the number of sensors currently managed.
      * @return The number of sensors.
      */
-    inline size_t getSensorCount() const { return _sensorCount; }
+    constexpr size_t getSensorCount() const { return _sensorCount; }
 
 private:
     Mode _mode;                      ///< Current operational mode
@@ -223,6 +203,8 @@ private:
 
     std::atomic<bool> _interruptOccurred;  ///< Flag to indicate if an interrupt has occurred
 
+    bool _wifiInitialized;  ///< Flag to indicate if WiFi has been initialized
+
     /**
      * @brief Runs the ESPLowPowerSensor in PER_SENSOR mode.
      */
@@ -250,6 +232,8 @@ private:
      * @return True if WiFi was successfully turned on, false otherwise.
      */
     bool wifiOn() const;
+
+    bool initializeWifi() const;  ///< Initialize WiFi if not already done
 };
 
 #endif // ESP_LOW_POWER_SENSOR_H

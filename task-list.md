@@ -2,8 +2,7 @@
 Use this document to keep track of tasks that need to be done.
 
 ## Unfinished tasks
-1. Use constexpr for compile-time computations where applicable.
-2. Implement lazy initialization for WiFi to reduce startup time and power consumption.
+No unfinished tasks remaining.
 
 ## Finished tasks
 1. Create the basic library structure (header and source files)
@@ -46,3 +45,5 @@ Use this document to keep track of tasks that need to be done.
 38. Optimize the interrupt handling routine to minimize the time spent in the ISR.
 39. Use inline functions for small, frequently called functions to reduce function call overhead.
 40. Implement a more efficient queue system for interrupt handling, possibly using a circular buffer.
+41. Use constexpr for compile-time computations where applicable.
+42. Implement lazy initialization for WiFi to reduce startup time and power consumption.
