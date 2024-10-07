@@ -307,7 +307,7 @@ test(analogTrigger) {
   const int ANALOG_PIN = A0;
   const int THRESHOLD = 500;
   
-  assertTrue(sensor.addSensor([&triggerCount](){ triggerCount++; }, nullptr, ESPLowPowerSensor::TriggerMode::ANALOG, THRESHOLD, ANALOG_PIN));
+  assertTrue(sensor.addSensor([&triggerCount](){ triggerCount++; }, nullptr, ESPLowPowerSensor::TriggerMode::ANALOG_TRIGGER, THRESHOLD, ANALOG_PIN));
   
   // Simulate analog reading below threshold
   analogWrite(ANALOG_PIN, 400);
@@ -331,7 +331,7 @@ test(mixedTriggerModes) {
   
   assertTrue(sensor.addSensor([&timeIntervalCount](){ timeIntervalCount++; }, nullptr, ESPLowPowerSensor::TriggerMode::TIME_INTERVAL, 100));
   assertTrue(sensor.addSensor([&digitalCount](){ digitalCount++; }, nullptr, ESPLowPowerSensor::TriggerMode::DIGITAL, HIGH, DIGITAL_PIN));
-  assertTrue(sensor.addSensor([&analogCount](){ analogCount++; }, nullptr, ESPLowPowerSensor::TriggerMode::ANALOG, ANALOG_THRESHOLD, ANALOG_PIN));
+  assertTrue(sensor.addSensor([&analogCount](){ analogCount++; }, nullptr, ESPLowPowerSensor::TriggerMode::ANALOG_TRIGGER, ANALOG_THRESHOLD, ANALOG_PIN));
   
   // Simulate mixed trigger conditions
   pinMode(DIGITAL_PIN, OUTPUT);
@@ -365,7 +365,7 @@ test(addSensor) {
   assertTrue(sensor.addSensor([](){}, nullptr, ESPLowPowerSensor::TriggerMode::DIGITAL, HIGH, 2));
   
   // Test adding a sensor with ANALOG trigger mode
-  assertTrue(sensor.addSensor([](){}, nullptr, ESPLowPowerSensor::TriggerMode::ANALOG, 500, A0));
+  assertTrue(sensor.addSensor([](){}, nullptr, ESPLowPowerSensor::TriggerMode::ANALOG_TRIGGER, 500, A0));
   
   // Test adding more than MAX_SENSORS
   for (int i = 0; i < MAX_SENSORS - 3; i++) {

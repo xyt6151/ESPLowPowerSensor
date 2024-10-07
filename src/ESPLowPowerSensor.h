@@ -4,11 +4,10 @@
 #include <Arduino.h>
 #include <functional>
 #include <vector>
-#include <queue>  // Add this line
-#include <atomic>  // Add this line at the top of the file
-#include <array>  // Add this line
+#include <queue>
+#include <atomic>
+#include <array>
 
-// Add these includes at the top of the file
 #if defined(ESP32)
 #include <WiFi.h>
 #elif defined(ESP8266)
@@ -17,11 +16,9 @@
 #error "This library only supports ESP32 and ESP8266 boards"
 #endif
 
-// Add these near the top of the file, after the includes and before any class definitions
 constexpr size_t CIRCULAR_BUFFER_SIZE = 32;
 constexpr size_t MAX_SENSORS = 10;
 
-// Update the CircularBuffer class
 class CircularBuffer {
 private:
     std::array<size_t, CIRCULAR_BUFFER_SIZE> _buffer;
@@ -99,7 +96,7 @@ public:
     enum class TriggerMode {
         TIME_INTERVAL,
         DIGITAL,
-        ANALOG
+        ANALOG_TRIGGER
     };
 
     /**
@@ -113,10 +110,10 @@ public:
         union {
             unsigned long interval;            ///< Sampling interval for TIME_INTERVAL mode
             bool digitalValue;                 ///< HIGH or LOW for DIGITAL mode
-            int analogValue;                   ///< Analog threshold value for ANALOG mode
+            int analogValue;                   ///< ANALOG_TRIGGER threshold value for ANALOG_TRIGGER mode
         } triggerValue;
         unsigned long lastExecutionTime;       ///< Last time the sensor functions were executed
-        uint8_t pin;                           ///< Pin number for DIGITAL or ANALOG modes
+        uint8_t pin;                           ///< Pin number for DIGITAL or ANALOG_TRIGGER modes
     };
 
     /**
@@ -131,15 +128,15 @@ public:
      * @param lowPowerMode The low-power mode to be used (LIGHT_SLEEP or DEEP_SLEEP).
      * @return True if initialization was successful, false otherwise.
      */
-    bool init(Mode mode, bool wifiRequired, LowPowerMode lowPowerMode);
+    bool initialize(Mode mode, bool wifiRequired, LowPowerMode lowPowerMode);
 
     /**
      * @brief Adds a sensor to be managed by the ESPLowPowerSensor.
      * @param wakeFunction Function to be called when the sensor wakes up.
      * @param sleepFunction Function to be called before the sensor goes to sleep (optional).
      * @param triggerMode The trigger mode for this sensor (optional).
-     * @param intervalOrThreshold Sampling interval or threshold value for TIME_INTERVAL or ANALOG mode (optional).
-     * @param pin Pin number for DIGITAL or ANALOG modes (optional).
+     * @param intervalOrThreshold Sampling interval or threshold value for TIME_INTERVAL or ANALOG_TRIGGER mode (optional).
+     * @param pin Pin number for DIGITAL or ANALOG_TRIGGER modes (optional).
      * @return True if the sensor was successfully added, false otherwise.
      */
     bool addSensor(std::function<void()> wakeFunction, 
@@ -179,37 +176,37 @@ public:
      * @brief Returns the number of sensors currently managed.
      * @return The number of sensors.
      */
-    constexpr size_t getSensorCount() const { return _sensorCount; }
+    size_t getSensorCount() const { return _sensorCount; }
 
     /**
      * @brief Gets the current operational mode.
      * @return The current Mode.
      */
-    constexpr Mode getMode() const { return _mode; }
+    Mode getMode() const { return _mode; }
 
     /**
      * @brief Checks if WiFi is required for sensor operations.
      * @return True if WiFi is required, false otherwise.
      */
-    constexpr bool isWifiRequired() const { return _wifiRequired; }
+    bool isWifiRequired() const { return _wifiRequired; }
 
     /**
      * @brief Gets the current low power mode.
      * @return The current LowPowerMode.
      */
-    constexpr LowPowerMode getLowPowerMode() const { return _lowPowerMode; }
+    LowPowerMode getLowPowerMode() const { return _lowPowerMode; }
 
     /**
      * @brief Gets the single interval used in SINGLE_INTERVAL mode.
      * @return The single interval in milliseconds.
      */
-    constexpr unsigned long getSingleInterval() const { return _singleInterval; }
+    unsigned long getSingleInterval() const { return _singleInterval; }
 
     /**
      * @brief Checks if interrupts are currently enabled.
      * @return True if interrupts are enabled, false otherwise.
      */
-    constexpr bool areInterruptsEnabled() const { return _interruptsEnabled; }
+    bool areInterruptsEnabled() const { return _interruptsEnabled; }
 
     /**
      * @brief Sets the WiFi credentials.
@@ -235,9 +232,6 @@ private:
     static void IRAM_ATTR onTimerInterrupt();
     void handleInterrupt();
 
-    // Replace this line:
-    // std::queue<size_t> _interruptQueue;
-    // With this:
     CircularBuffer _interruptQueue;  ///< Queue to store sensor indices for interrupt processing
     void processInterruptQueue();  ///< Process the queue of sensor interrupts
 
@@ -282,10 +276,14 @@ private:
 
     bool initializeWifi() const;  ///< Initialize WiFi if not already done
 
-    size_t _sensorCount;  // Add this line
+    size_t _sensorCount;
 
     bool checkDigitalTrigger(const Sensor& sensor);
     bool checkAnalogTrigger(const Sensor& sensor);
+
+    void executeSensor(size_t index);
+
+    unsigned long _lastExecutionTime;
 };
 
 #endif // ESP_LOW_POWER_SENSOR_H
