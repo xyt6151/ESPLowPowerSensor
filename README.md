@@ -1,12 +1,12 @@
 # ESPLowPowerSensor Library
 
 ## Overview
-ESPLowPowerSensor is a library for managing low-power sensor operations on ESP32 and ESP8266 boards. It provides an easy-to-use interface for managing multiple sensors with different sampling intervals while optimizing power consumption through sleep modes.
+ESPLowPowerSensor is a library for managing low-power sensor operations on ESP32 and ESP8266 boards. It provides an easy-to-use interface for managing multiple sensors with different sampling intervals while optimizing power consumption through sleep modes. The library uses an interrupt-driven approach for efficient sensor management, ensuring precise timing and minimal power consumption.
 
 ## Features
 - Support for both ESP32 and ESP8266 boards
 - Two operational modes: Per-Sensor and Single-Interval
-- Interrupt-driven approach for efficient sensor management
+- Interrupt-driven approach for efficient and precise sensor management
 - Queue system to handle multiple sensor interrupts
 - Safeguards to ensure interrupt handlers complete before entering sleep mode
 - WiFi management for power optimization

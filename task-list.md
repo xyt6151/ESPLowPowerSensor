@@ -56,3 +56,6 @@ No unfinished tasks remaining.
 49. Fix array subscript errors for _sensors in ESPLowPowerSensor class
 50. Replace esp_wifi_start with appropriate WiFi function in init method
 52. Remove duplicate definition of CIRCULAR_BUFFER_SIZE
+53. Update README.md to mention the interrupt-driven approach
+54. Create a new example demonstrating the interrupt-driven approach
+55. Add "interrupt" keyword to library.properties
