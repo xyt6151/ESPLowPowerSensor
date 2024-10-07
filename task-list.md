@@ -2,19 +2,18 @@
 Use this document to keep track of tasks that need to be done. Determine 
 
 ## Unfinished tasks
-1. Add input validation for the interval parameter in addSensor()
-2. Add a method to change the operating mode after initialization: bool setMode(Mode newMode)
-3. In runPerSensorMode(), use std::min_element to find the next wake time instead of iterating through the sensors twice
-4. In goToSleep(), add a check to ensure sleepTime is not zero or negative
-5. Add error handling for WiFi operations in wifiOff() and wifiOn()
-6. Set up unit testing framework (e.g., ArduinoUnit or AUnit)
-7. Write test cases for ESPLowPowerSensor class initialization
-8. Implement tests for addSensor() method with various inputs
-9. Create tests for run() method in both Per-Sensor and Single-Interval modes
-10. Develop mock functions for WiFi and sleep operations to test goToSleep(), wifiOn(), and wifiOff() methods
-11. Write tests to verify correct behavior of runPerSensorMode() and runSingleIntervalMode()
-12. Implement edge case tests (e.g., adding many sensors, very short/long intervals)
-13. Set up Continuous Integration to run tests automatically on code changes
+1. Add a method to change the operating mode after initialization: bool setMode(Mode newMode)
+2. In runPerSensorMode(), use std::min_element to find the next wake time instead of iterating through the sensors twice
+3. In goToSleep(), add a check to ensure sleepTime is not zero or negative
+4. Add error handling for WiFi operations in wifiOff() and wifiOn()
+5. Set up unit testing framework (e.g., ArduinoUnit or AUnit)
+6. Write test cases for ESPLowPowerSensor class initialization
+7. Implement tests for addSensor() method with various inputs
+8. Create tests for run() method in both Per-Sensor and Single-Interval modes
+9. Develop mock functions for WiFi and sleep operations to test goToSleep(), wifiOn(), and wifiOff() methods
+10. Write tests to verify correct behavior of runPerSensorMode() and runSingleIntervalMode()
+11. Implement edge case tests (e.g., adding many sensors, very short/long intervals)
+12. Set up Continuous Integration to run tests automatically on code changes
 
 ## Finished tasks
 1. Create the basic library structure (header and source files)
@@ -29,3 +28,4 @@ Use this document to keep track of tasks that need to be done. Determine
 10. Perform final code review and testing
 11. Add thorough comments throughout both the .cpp and .h files, ensuring comprehensive understanding for AI code readers
 12. Add const qualifiers to methods that don't modify the object state in ESPLowPowerSensor.h
+13. Add input validation for the interval parameter in addSensor()

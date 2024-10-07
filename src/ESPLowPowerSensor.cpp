@@ -61,8 +61,18 @@ bool ESPLowPowerSensor::init(Mode mode, bool wifiRequired, LowPowerMode lowPower
 }
 
 bool ESPLowPowerSensor::addSensor(std::function<void()> wakeFunction, std::function<void()> sleepFunction, unsigned long interval) {
+    // Input validation for interval
     if (_mode == Mode::PER_SENSOR && interval == 0) {
         return false; // Interval is required for per-sensor mode
+    }
+    
+    if (_mode == Mode::SINGLE_INTERVAL && interval > 0 && _singleInterval > 0 && interval != _singleInterval) {
+        return false; // In single-interval mode, all intervals must be the same (if set)
+    }
+
+    // Ensure wakeFunction is provided
+    if (!wakeFunction) {
+        return false; // Wake function is required
     }
 
     Sensor newSensor = {
