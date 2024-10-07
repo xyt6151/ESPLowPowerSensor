@@ -3,7 +3,6 @@ Use this document to keep track of tasks that need to be done. Determine
 
 ## Unfinished tasks
 1. Modify the library to use interrupts for executing user-created functions:
-    a. Research and implement a method to set up timer interrupts on both ESP32 and ESP8266
     b. Create a new interrupt service routine (ISR) to handle sensor wake and sleep functions
     c. Modify the addSensor() method to associate wake and sleep functions with specific interrupts
     d. Update runPerSensorMode() and runSingleIntervalMode() to trigger interrupts instead of directly calling functions
@@ -40,3 +39,5 @@ Use this document to keep track of tasks that need to be done. Determine
 23. Write tests to verify correct behavior of runPerSensorMode() and runSingleIntervalMode()
 24. Implement edge case tests (e.g., adding many sensors, very short/long intervals)
 25. Set up Continuous Integration to run tests automatically on code changes
+26. Research and implement a method to set up timer interrupts on both ESP32 and ESP8266
+27. Create a new interrupt service routine (ISR) to handle sensor wake and sleep functions

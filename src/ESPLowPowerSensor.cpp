@@ -20,7 +20,7 @@ int myFunction(int x, int y) {
 }
 
 ESPLowPowerSensor::ESPLowPowerSensor() : _mode(Mode::SINGLE_INTERVAL), _wifiRequired(false), _lowPowerMode(LowPowerMode::DEEP_SLEEP), _singleInterval(0) {
-    // Constructor initializes default values for member variables
+    instance = this;
 }
 
 bool ESPLowPowerSensor::init(Mode mode, bool wifiRequired, LowPowerMode lowPowerMode) {
@@ -263,4 +263,48 @@ bool ESPLowPowerSensor::setMode(Mode newMode) {
 
     _mode = newMode;
     return true;
+}
+
+bool ESPLowPowerSensor::setupTimerInterrupt(unsigned long interval) {
+    #if defined(ESP32)
+    _timer = timerBegin(0, 80, true);  // Timer 0, prescaler 80, count up
+    if (_timer == nullptr) {
+        return false;
+    }
+    timerAttachInterrupt(_timer, &ESPLowPowerSensor::onTimerInterrupt, true);
+    timerAlarmWrite(_timer, interval * 1000, true);  // Convert ms to us
+    timerAlarmEnable(_timer);
+    return true;
+    #elif defined(ESP8266)
+    _ticker.attach_ms(interval, ESPLowPowerSensor::onTimerInterrupt);
+    return true;
+    #endif
+}
+
+// Implement the static ISR
+void IRAM_ATTR ESPLowPowerSensor::onTimerInterrupt() {
+    if (instance) {
+        instance->handleInterrupt();
+    }
+}
+
+// Implement the handleInterrupt method
+void ESPLowPowerSensor::handleInterrupt() {
+    unsigned long currentTime = millis();
+
+    for (auto& sensor : _sensors) {
+        if (currentTime - sensor.lastExecutionTime >= sensor.interval) {
+            // Execute wake function
+            if (sensor.wakeFunction) {
+                sensor.wakeFunction();
+            }
+
+            // Execute sleep function
+            if (sensor.sleepFunction) {
+                sensor.sleepFunction();
+            }
+
+            sensor.lastExecutionTime = currentTime;
+        }
+    }
 }

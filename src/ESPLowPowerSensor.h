@@ -9,8 +9,10 @@
 #if defined(ESP32)
 #include <esp_sleep.h>
 #include <esp_wifi.h>
+#include "esp32-hal-timer.h"
 #elif defined(ESP8266)
 #include <ESP8266WiFi.h>
+#include <Ticker.h>
 #else
 #error "This library only supports ESP32 and ESP8266 boards"
 #endif
@@ -90,12 +92,29 @@ public:
      */
     bool setMode(Mode newMode);
 
+    /**
+     * @brief Sets up a timer interrupt for the specified interval.
+     * @param interval The interval in milliseconds for the timer interrupt.
+     * @return True if the timer was successfully set up, false otherwise.
+     */
+    bool setupTimerInterrupt(unsigned long interval);
+
 private:
     Mode _mode;                      ///< Current operational mode
     bool _wifiRequired;              ///< Whether WiFi is required during sensor operations
     LowPowerMode _lowPowerMode;      ///< Current low-power mode
     std::vector<Sensor> _sensors;    ///< Collection of managed sensors
     unsigned long _singleInterval;   ///< Interval used in SINGLE_INTERVAL mode
+
+    #if defined(ESP32)
+    hw_timer_t* _timer = nullptr;
+    #elif defined(ESP8266)
+    Ticker _ticker;
+    #endif
+
+    static ESPLowPowerSensor* instance;
+    static void IRAM_ATTR onTimerInterrupt();
+    void handleInterrupt();
 
     /**
      * @brief Runs the ESPLowPowerSensor in PER_SENSOR mode.
