@@ -93,14 +93,30 @@ public:
     };
 
     /**
+     * @enum TriggerMode
+     * @brief Defines the trigger mode for sensors.
+     */
+    enum class TriggerMode {
+        TIME_INTERVAL,
+        DIGITAL,
+        ANALOG
+    };
+
+    /**
      * @struct Sensor
      * @brief Represents a sensor with its associated functions and timing information.
      */
     struct Sensor {
         std::function<void()> wakeFunction;    ///< Function to be called when the sensor wakes up
         std::function<void()> sleepFunction;   ///< Function to be called before the sensor goes to sleep
-        unsigned long interval;                ///< Sampling interval for the sensor
+        TriggerMode triggerMode;               ///< The trigger mode for this sensor
+        union {
+            unsigned long interval;            ///< Sampling interval for TIME_INTERVAL mode
+            bool digitalValue;                 ///< HIGH or LOW for DIGITAL mode
+            int analogValue;                   ///< Analog threshold value for ANALOG mode
+        } triggerValue;
         unsigned long lastExecutionTime;       ///< Last time the sensor functions were executed
+        uint8_t pin;                           ///< Pin number for DIGITAL or ANALOG modes
     };
 
     /**
@@ -121,10 +137,16 @@ public:
      * @brief Adds a sensor to be managed by the ESPLowPowerSensor.
      * @param wakeFunction Function to be called when the sensor wakes up.
      * @param sleepFunction Function to be called before the sensor goes to sleep (optional).
-     * @param interval Sampling interval for the sensor (required for PER_SENSOR mode).
+     * @param triggerMode The trigger mode for this sensor (optional).
+     * @param intervalOrThreshold Sampling interval or threshold value for TIME_INTERVAL or ANALOG mode (optional).
+     * @param pin Pin number for DIGITAL or ANALOG modes (optional).
      * @return True if the sensor was successfully added, false otherwise.
      */
-    bool addSensor(std::function<void()> wakeFunction, std::function<void()> sleepFunction = nullptr, unsigned long interval = 0);
+    bool addSensor(std::function<void()> wakeFunction, 
+                   std::function<void()> sleepFunction = nullptr, 
+                   TriggerMode triggerMode = TriggerMode::TIME_INTERVAL, 
+                   unsigned long intervalOrThreshold = 0,
+                   uint8_t pin = 0);
 
     /**
      * @brief Runs the main loop of the ESPLowPowerSensor.

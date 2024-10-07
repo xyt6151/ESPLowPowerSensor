@@ -75,3 +75,23 @@ This library is released under the MIT License.
 
 ## Contributing
 Contributions to the ESPLowPowerSensor library are welcome. Please submit pull requests or open issues on the GitHub repository.
+
+## WiFi Management
+
+To use WiFi with the ESPLowPowerSensor library, you need to set the WiFi credentials before initializing the library. Use the `setWiFiCredentials` method to do this:
+
+```cpp
+ESPLowPowerSensor lowPowerSensor;
+
+void setup() {
+  // Set WiFi credentials
+  lowPowerSensor.setWiFiCredentials("YourSSID", "YourPassword");
+
+  // Initialize the library with WiFi enabled
+  lowPowerSensor.init(ESPLowPowerSensor::Mode::PER_SENSOR, true, ESPLowPowerSensor::LowPowerMode::LIGHT_SLEEP);
+
+  // ... rest of your setup code ...
+}
+```
+
+The library will automatically handle WiFi connections when needed, based on the `wifiRequired` parameter in the `init` method.
