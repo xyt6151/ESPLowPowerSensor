@@ -3,6 +3,22 @@ Use this document to keep track of tasks that need to be done.
 
 ## Unfinished tasks
 1. Implement WiFi credential storage and management
+2. Update ESPLowPowerSensor.h to add TriggerMode enum and modify Sensor struct
+3. Modify addSensor method in ESPLowPowerSensor.h and ESPLowPowerSensor.cpp
+4. Update run, runPerSensorMode, and runSingleIntervalMode methods in ESPLowPowerSensor.cpp
+5. Implement methods for checking digital and analog triggers in ESPLowPowerSensor.cpp
+6. Update existing example files to showcase new trigger modes
+7. Create new examples demonstrating digital and analog trigger usage
+8. Update README.md with information about new trigger modes and usage examples
+9. Update library.properties with new keywords related to trigger modes
+10. Add new test cases for different trigger modes in test files
+11. Modify existing tests to accommodate the changes
+12. Review and update any other relevant documentation or configuration files
+13. Update keywords.txt with new keywords related to trigger modes
+14. Review and update .github/workflows/ci.yml if necessary
+15. Update include/README and lib/README if they contain relevant documentation
+16. Review and update .vscode/c_cpp_properties.json if necessary
+17. Review and update platformio.ini if necessary
 
 ## Finished tasks
 1. Create the basic library structure (header and source files)

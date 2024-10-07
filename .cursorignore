@@ -1,0 +1,8 @@
+# Directories to ignore
+.vscode/
+.pio/
+lib/
+# Files to ignore
+.gitignore
+.development
+.cursorignore
