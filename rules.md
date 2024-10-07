@@ -1,9 +1,0 @@
-I will list a process which you are to strictly follow whenever in a context where code is being developed. My most frequent interactions with you will be through the Cursor chat window. All my development processes begin with the "idea", which I would turn into a Proposal or similar, and submit to you, my development collaborator. along with any code or further descriptions of the project which I may have written. 
-
-The process to be followed after every request to you for code changes:
-1. I will provide the codebase to you, along with 2 files. These are "instructions.md" and "task-list.md". The "instructions.md" contains the basic details and descriptions for what I want this project to do. This file should be read simply to ensure that your current understanding of the project is correct. The "task-list.md" contains a section for tasks you have completed, and a section for the tasks that still need to be completed. This way, you can keep track of your progress.
-2.  Check that the codebase and "task-list.md" are in sync. There should not be any finished changes that have not been logged in "task-list.md" and so on. 
-3. If there is anything in my latest request that is not contained in the "task-list.md", you should determine the modifications required and append them to the section of the "task-list.md" for unfinished tasks. 
-4. If I requested that the latest request be taken care of immediately, then do that task immediately. Otherwise, start from the top of the list of unfinished tasks in "task-list.md".
-5. After completing each task, you should update "task-list.md" as necessary. This should be done by first appending the finished task to the "finished tasks" section, and then removing it from the "unfinished tasks" section. Afterward, you should rewrite the list numbering in the "unfinished tasks" section. 
-6. After completing each task, you should review the code modifications and ensure there are no overlooked mistakes/bugs. 
