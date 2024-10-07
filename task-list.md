@@ -2,21 +2,21 @@
 Use this document to keep track of tasks that need to be done.
 
 ## Unfinished tasks
-1. Implement methods for checking digital and analog triggers in ESPLowPowerSensor.cpp
-2. Update existing example files to showcase new trigger modes
-3. Create new examples demonstrating digital and analog trigger usage
-4. Update README.md with information about new trigger modes and usage examples
-5. Update library.properties with new keywords related to trigger modes
-6. Add new test cases for different trigger modes in test files
-7. Modify existing tests to accommodate the changes
-8. Review and update any other relevant documentation or configuration files
-9. Update keywords.txt with new keywords related to trigger modes
-10. Review and update .github/workflows/ci.yml if necessary
-11. Update include/README and lib/README if they contain relevant documentation
-12. Review and update .vscode/c_cpp_properties.json if necessary
-13. Review and update platformio.ini if necessary
+1. Update existing example files to showcase new trigger modes
+2. Create new examples demonstrating digital and analog trigger usage
+3. Update README.md with information about new trigger modes and usage examples
+4. Update library.properties with new keywords related to trigger modes
+5. Add new test cases for different trigger modes in test files
+6. Modify existing tests to accommodate the changes
+7. Review and update any other relevant documentation or configuration files
+8. Update keywords.txt with new keywords related to trigger modes
+9. Review and update .github/workflows/ci.yml if necessary
+10. Update include/README and lib/README if they contain relevant documentation
+11. Review and update .vscode/c_cpp_properties.json if necessary
+12. Review and update platformio.ini if necessary
 
 ## Finished tasks
+60. Implement methods for checking digital and analog triggers in ESPLowPowerSensor.cpp
 59. Update run, runPerSensorMode, and runSingleIntervalMode methods in ESPLowPowerSensor.cpp
 58. Modify addSensor method in ESPLowPowerSensor.h and ESPLowPowerSensor.cpp
 57. Update ESPLowPowerSensor.h to add TriggerMode enum and modify Sensor struct
